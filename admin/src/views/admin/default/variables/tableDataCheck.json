@@ -1,31 +1,32 @@
-[{
-  "name":["Horizon UI PRO",false],
-  "quantity": 2458, 
-  "date": "12 Jan 2021",
-  "progress": 17.5  
-},
-{
-  "name":["Horizon UI Free",true],
-  "quantity": 1485, 
-  "date": "21 Feb 2021",
-  "progress": 10.8  
-},
-{
-  "name":["Weekly Update",true],
-  "quantity": 1024, 
-  "date": "13 Mar 2021",
-  "progress": 21.3  
-},
-{
-  "name":["Venus 3D Asset",true],
-  "quantity": 858, 
-  "date": "24 Jan 2021",
-  "progress": 31.5  
-},
-{
-  "name":["Marketplace",false],
-  "quantity": 258, 
-  "date": "24 Oct 2022",
-  "progress": 12.2  
-}
+[
+  {
+    "name": ["Monthly Plan", true],
+    "quantity": 182,
+    "date": "01 Oct 2026",
+    "progress": 82.0
+  },
+  {
+    "name": ["Quarterly Plan", true],
+    "quantity": 94,
+    "date": "01 Oct 2026",
+    "progress": 60.5
+  },
+  {
+    "name": ["Semi-Annual Plan", false],
+    "quantity": 47,
+    "date": "01 Oct 2026",
+    "progress": 35.2
+  },
+  {
+    "name": ["Annual Plan", true],
+    "quantity": 59,
+    "date": "01 Oct 2026",
+    "progress": 45.8
+  },
+  {
+    "name": ["Custom Plan", false],
+    "quantity": 18,
+    "date": "01 Oct 2026",
+    "progress": 12.0
+  }
 ]

@@ -83,7 +83,7 @@ function SignIn() {
         flexDirection='column'>
         <Box me='auto'>
           <Heading color={textColor} fontSize='36px' mb='10px'>
-            Sign In
+            Hope Gym
           </Heading>
           <Text
             mb='36px'
@@ -91,7 +91,7 @@ function SignIn() {
             color={textColorSecondary}
             fontWeight='400'
             fontSize='md'>
-            Enter your email and password to sign in!
+            Sign in to the management dashboard
           </Text>
         </Box>
         <Flex
@@ -143,7 +143,7 @@ function SignIn() {
               fontSize='sm'
               ms={{ base: "0px", md: "0px" }}
               type='email'
-              placeholder='mail@simmmple.com'
+              placeholder='admin@hopegym.com'
               mb='24px'
               fontWeight='500'
               size='lg'

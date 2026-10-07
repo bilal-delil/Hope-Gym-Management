@@ -1,26 +1,26 @@
 [
   {
-    "name":"Horizon UI PRO",
+    "name": "Ahmed Khalid",
     "status": "Approved",
-    "date": "18 Apr 2022",
-    "progress": 75.5  
+    "date": "01 Oct 2026",
+    "progress": 80
   },
   {
-    "name":"Horizon UI Free",
+    "name": "Sara Mohamed",
+    "status": "Approved",
+    "date": "15 Sep 2026",
+    "progress": 60
+  },
+  {
+    "name": "Omar Hassan",
     "status": "Disable",
-    "date": "18 Apr 2022",
-    "progress": 25.5  
+    "date": "02 Aug 2026",
+    "progress": 20
   },
   {
-    "name":"Marketplace",
+    "name": "Layla Nasser",
     "status": "Error",
-    "date": "20 May 2021",
-    "progress": 90  
-  },
-  {
-    "name":"Weekly Updates",
-    "status": "Approved",
-    "date": "12 Jul 2021",
-    "progress": 50.5  
+    "date": "10 Sep 2026",
+    "progress": 45
   }
 ]

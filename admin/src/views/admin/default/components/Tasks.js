@@ -41,13 +41,13 @@ export default function Conversion(props) {
       </Flex>
       <Box px='11px'>
         <Flex mb='20px'>
-          <Checkbox me='16px' colorScheme='brandScheme' />
+          <Checkbox me='16px' defaultChecked colorScheme='brandScheme' />
           <Text
             fontWeight='bold'
             color={textColor}
             fontSize='md'
             textAlign='start'>
-          Landing Page Design
+            New member registered
           </Text>
           <Icon
             ms='auto'
@@ -64,24 +64,7 @@ export default function Conversion(props) {
             color={textColor}
             fontSize='md'
             textAlign='start'>
-            Dashboard Builder
-          </Text>
-          <Icon
-            ms='auto'
-            as={MdDragIndicator}
-            color='secondaryGray.600'
-            w='24px'
-            h='24px'
-          />
-        </Flex>
-        <Flex mb='20px'>
-          <Checkbox defaultChecked me='16px' colorScheme='brandScheme' />
-          <Text
-            fontWeight='bold'
-            color={textColor}
-            fontSize='md'
-            textAlign='start'>
-            Mobile App Design
+            Membership renewed — Ahmed K.
           </Text>
           <Icon
             ms='auto'
@@ -98,7 +81,7 @@ export default function Conversion(props) {
             color={textColor}
             fontSize='md'
             textAlign='start'>
-            Illustrations
+            3 memberships expiring this week
           </Text>
           <Icon
             ms='auto'
@@ -109,13 +92,30 @@ export default function Conversion(props) {
           />
         </Flex>
         <Flex mb='20px'>
-          <Checkbox defaultChecked me='16px' colorScheme='brandScheme' />
+          <Checkbox me='16px' defaultChecked colorScheme='brandScheme' />
           <Text
             fontWeight='bold'
             color={textColor}
             fontSize='md'
             textAlign='start'>
-            Promotional LP
+            New announcement published
+          </Text>
+          <Icon
+            ms='auto'
+            as={MdDragIndicator}
+            color='secondaryGray.600'
+            w='24px'
+            h='24px'
+          />
+        </Flex>
+        <Flex mb='20px'>
+          <Checkbox me='16px' colorScheme='brandScheme' />
+          <Text
+            fontWeight='bold'
+            color={textColor}
+            fontSize='md'
+            textAlign='start'>
+            Payment recorded — Sara M.
           </Text>
           <Icon
             ms='auto'
