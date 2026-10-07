@@ -35,7 +35,7 @@ export default function Conversion(props) {
         />
 
         <Text color={textColor} fontSize='lg' fontWeight='700'>
-          Tasks
+          Recent Activity
         </Text>
         <Menu ms='auto' />
       </Flex>
@@ -47,7 +47,7 @@ export default function Conversion(props) {
             color={textColor}
             fontSize='md'
             textAlign='start'>
-            Landing Page Design
+          Landing Page Design
           </Text>
           <Icon
             ms='auto'

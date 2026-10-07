@@ -22,27 +22,24 @@
 
 // Chakra imports
 import {
-  Avatar,
   Box,
   Flex,
-  FormLabel,
   Icon,
-  Select,
   SimpleGrid,
   useColorModeValue,
 } from "@chakra-ui/react";
-// Assets
-import Usa from "assets/img/dashboards/usa.png";
 // Custom components
 import MiniCalendar from "components/calendar/MiniCalendar";
 import MiniStatistics from "components/card/MiniStatistics";
 import IconBox from "components/icons/IconBox";
 import React from "react";
 import {
-  MdAddTask,
-  MdAttachMoney,
-  MdBarChart,
-  MdFileCopy,
+  MdPeople,
+  MdCheckCircle,
+  MdCardMembership,
+  MdPersonAdd,
+  MdPayment,
+  MdWarning,
 } from "react-icons/md";
 import CheckTable from "views/admin/default/components/CheckTable";
 import ComplexTable from "views/admin/default/components/ComplexTable";
@@ -75,12 +72,12 @@ export default function UserReports() {
               h='56px'
               bg={boxBg}
               icon={
-                <Icon w='32px' h='32px' as={MdBarChart} color={brandColor} />
+                <Icon w='32px' h='32px' as={MdPeople} color={brandColor} />
               }
             />
           }
-          name='Earnings'
-          value='$350.4'
+          name='Total Members'
+          value='450'
         />
         <MiniStatistics
           startContent={
@@ -89,34 +86,26 @@ export default function UserReports() {
               h='56px'
               bg={boxBg}
               icon={
-                <Icon w='32px' h='32px' as={MdAttachMoney} color={brandColor} />
+                <Icon w='32px' h='32px' as={MdCheckCircle} color={brandColor} />
               }
             />
           }
-          name='Spend this month'
-          value='$642.39'
+          name='Active Members'
+          value='382'
         />
-        <MiniStatistics growth='+23%' name='Sales' value='$574.34' />
         <MiniStatistics
-          endContent={
-            <Flex me='-16px' mt='10px'>
-              <FormLabel htmlFor='balance'>
-                <Avatar src={Usa} />
-              </FormLabel>
-              <Select
-                id='balance'
-                variant='mini'
-                mt='5px'
-                me='0px'
-                defaultValue='usd'>
-                <option value='usd'>USD</option>
-                <option value='eur'>EUR</option>
-                <option value='gba'>GBA</option>
-              </Select>
-            </Flex>
+          startContent={
+            <IconBox
+              w='56px'
+              h='56px'
+              bg={boxBg}
+              icon={
+                <Icon w='32px' h='32px' as={MdWarning} color={brandColor} />
+              }
+            />
           }
-          name='Your balance'
-          value='$1,000'
+          name='Expired Memberships'
+          value='68'
         />
         <MiniStatistics
           startContent={
@@ -124,11 +113,11 @@ export default function UserReports() {
               w='56px'
               h='56px'
               bg='linear-gradient(90deg, #4481EB 0%, #04BEFE 100%)'
-              icon={<Icon w='28px' h='28px' as={MdAddTask} color='white' />}
+              icon={<Icon w='28px' h='28px' as={MdPersonAdd} color='white' />}
             />
           }
-          name='New Tasks'
-          value='154'
+          name="Today's Check-ins"
+          value='124'
         />
         <MiniStatistics
           startContent={
@@ -137,12 +126,31 @@ export default function UserReports() {
               h='56px'
               bg={boxBg}
               icon={
-                <Icon w='32px' h='32px' as={MdFileCopy} color={brandColor} />
+                <Icon
+                  w='32px'
+                  h='32px'
+                  as={MdCardMembership}
+                  color={brandColor}
+                />
               }
             />
           }
-          name='Total Projects'
-          value='2935'
+          name='New Members'
+          value='12'
+        />
+        <MiniStatistics
+          startContent={
+            <IconBox
+              w='56px'
+              h='56px'
+              bg={boxBg}
+              icon={
+                <Icon w='32px' h='32px' as={MdPayment} color={brandColor} />
+              }
+            />
+          }
+          name='Monthly Revenue'
+          value='$3,240'
         />
       </SimpleGrid>
 
