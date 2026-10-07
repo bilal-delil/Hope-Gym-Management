@@ -143,7 +143,7 @@ export default function HeaderLinks(props) {
               borderRadius="8px"
               mb="10px"
             >
-              <ItemContent info="Horizon UI Dashboard PRO" />
+              <ItemContent info="Hope Gym Management" />
             </MenuItem>
             <MenuItem
               _hover={{ bg: 'none' }}
@@ -152,7 +152,7 @@ export default function HeaderLinks(props) {
               borderRadius="8px"
               mb="10px"
             >
-              <ItemContent info="Horizon Design System Free" />
+              <ItemContent info="Hope Gym Member PWA" />
             </MenuItem>
           </Flex>
         </MenuList>
@@ -182,14 +182,14 @@ export default function HeaderLinks(props) {
         >
           <Image src={navImage} borderRadius="16px" mb="28px" />
           <Flex flexDirection="column">
-            <Link w="100%" href="https://horizon-ui.com/pro">
+            <Link w="100%" href="#">
               <Button w="100%" h="44px" mb="10px" variant="brand">
-                Buy Horizon UI PRO
+                Hope Gym Portal
               </Button>
             </Link>
             <Link
               w="100%"
-              href="https://horizon-ui.com/documentation/docs/introduction"
+              href="#"
             >
               <Button
                 w="100%"
@@ -199,12 +199,12 @@ export default function HeaderLinks(props) {
                 bg="transparent"
                 borderColor={borderButton}
               >
-                See Documentation
+                Documentation
               </Button>
             </Link>
             <Link
               w="100%"
-              href="https://github.com/horizon-ui/horizon-ui-chakra-ts"
+              href="#"
             >
               <Button
                 w="100%"
@@ -213,7 +213,7 @@ export default function HeaderLinks(props) {
                 color={textColor}
                 bg="transparent"
               >
-                Try Horizon Free
+                Support
               </Button>
             </Link>
           </Flex>
