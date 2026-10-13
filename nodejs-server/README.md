@@ -1,6 +1,19 @@
 # Hope Gym API (`nodejs-server`)
 
-Express + PostgreSQL backend for the Hope Gym Management admin dashboard.
+Express + PostgreSQL backend for the Hope Gym Management admin dashboard (and member Google auth / payment submit).
+
+## Docs
+
+| Guide | Link |
+|---|---|
+| Documentation hub | [`../docs/README.md`](../docs/README.md) |
+| Quick start | [`../docs/SETUP.md`](../docs/SETUP.md) |
+| **Linux install** | [`../docs/setup/linux.md`](../docs/setup/linux.md) |
+| **Windows install** | [`../docs/setup/windows.md`](../docs/setup/windows.md) |
+| Google OAuth | [`../docs/google-oauth.md`](../docs/google-oauth.md) |
+| Environment vars | [`../docs/environment.md`](../docs/environment.md) |
+| Troubleshooting | [`../docs/troubleshooting.md`](../docs/troubleshooting.md) |
+| Admin dashboard | [`../admin/README.md`](../admin/README.md) |
 
 ## Features covered
 
@@ -20,6 +33,7 @@ Express + PostgreSQL backend for the Hope Gym Management admin dashboard.
 | Reports | `/api/reports` |
 | Settings | `/api/settings` |
 | Global search / notifications | `/api/search`, `/api/notifications` |
+| Member self-service | `/api/member/payments` |
 
 ## Stack
 
@@ -28,45 +42,61 @@ Express + PostgreSQL backend for the Hope Gym Management admin dashboard.
 - Schema migrations via `node-pg-migrate`
 - **Google Auth only** (no passwords) → server JWT
 - Roles: `admin`, `staff`, `member`
-- `express-validator` request validation
+- Image payment proofs (multer) → approve / decline
 
 ## Setup
 
-1. Create a PostgreSQL database, for example `hope_gym`.
-2. Create Google OAuth Web Client ID(s) in Google Cloud Console (one for admin app, one for PWA if needed).
-3. Copy env file and edit values:
+Prefer the OS guides for first-time machine setup:
+
+- [Linux](../docs/setup/linux.md)
+- [Windows](../docs/setup/windows.md)
+
+### Short form (after Node + Postgres exist)
+
+**Linux / macOS**
 
 ```bash
+cd nodejs-server
 cp .env.example .env
-```
-
-Set at least:
-
-- `DATABASE_URL`
-- `JWT_SECRET`
-- `GOOGLE_CLIENT_IDS`
-- `ADMIN_GOOGLE_EMAILS` (your Gmail(s) allowed as admin)
-- `SEED_ADMIN_EMAIL` (same as one of the admin emails)
-
-4. Install / migrate / seed / run:
-
-```bash
+# edit .env — see ../docs/environment.md
 npm install
 npm run migrate
 npm run seed
 npm run dev
 ```
 
-Default URL: `http://localhost:4000`  
+**Windows (PowerShell)**
+
+```powershell
+cd nodejs-server
+copy .env.example .env
+# edit .env
+npm install
+npm run migrate
+npm run seed
+npm run dev
+```
+
+Default URL: http://localhost:4000  
 Health check: `GET /api/health`
+
+### Required env (minimum)
+
+| Variable | Purpose |
+|---|---|
+| `DATABASE_URL` or `DB_URL` | Postgres connection |
+| `JWT_SECRET` | Sign API tokens |
+| `GOOGLE_CLIENT_IDS` | Google Web Client ID(s) |
+| `ADMIN_GOOGLE_EMAILS` | Comma-separated admin Gmails |
+
+Full list: [docs/environment.md](../docs/environment.md)  
+Google console steps: [docs/google-oauth.md](../docs/google-oauth.md)
 
 ## Auth (Google only)
 
 There is **no email/password login**.
 
 ### Admin / staff
-
-Frontend gets a Google ID token, then:
 
 ```http
 POST /api/auth/google/admin
@@ -75,7 +105,7 @@ Content-Type: application/json
 { "idToken": "<google-id-token>" }
 ```
 
-Access rules:
+Rules:
 
 - Email **must** be listed in `ADMIN_GOOGLE_EMAILS` (comma-separated for multiple admins)
 - Any other Google account is rejected with `403`
@@ -99,11 +129,16 @@ GET /api/auth/me
 Authorization: Bearer <api-jwt>
 ```
 
-Use the returned API JWT on all other requests:
+## Scripts
 
-```http
-Authorization: Bearer <token>
-```
+| Command | Description |
+|---|---|
+| `npm run dev` | Nodemon API on `PORT` (default 4000) |
+| `npm start` | Production-style start |
+| `npm run migrate` | Apply migrations |
+| `npm run migrate:down` | Roll back one migration |
+| `npm run migrate:create -- name` | Create a new migration file |
+| `npm run seed` | Seed plans, sample data, allowlisted admins |
 
 ## Migrations
 
@@ -117,46 +152,17 @@ npm run migrate:create -- add-something
 
 Payments are **screenshot-based**, not gateway-based.
 
-1. Submit a payment with a proof image (`multipart/form-data`):
+1. Submit with proof image (`multipart/form-data` field `proofImage`) → `pending`
+2. Queue: `GET /api/payments/pending`
+3. `POST /api/payments/:id/approve` or `POST /api/payments/:id/decline` with `{ "rejectionReason": "..." }`
 
-```http
-POST /api/payments
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
+Proof files are served from `/uploads/payments/...`.
 
-memberId: <uuid>
-amount: 49.99
-method: bank_transfer
-reference: TXN-123
-proofImage: <image file>
-```
-
-Status starts as `pending`. Admins/staff get a notification.
-
-2. Review queue:
-
-```http
-GET /api/payments/pending
-```
-
-3. Approve or decline:
-
-```http
-POST /api/payments/:id/approve
-
-POST /api/payments/:id/decline
-Content-Type: application/json
-
-{ "rejectionReason": "Screenshot is unclear" }
-```
-
-- Approve → `completed` (and linked membership set to `active` if present)
-- Decline → `declined` with `rejection_reason`
-- Proof files are served from `/uploads/payments/...`
+Members can also submit via `POST /api/member/payments`.
 
 ## Notes
 
 - Public routes: `/api/health`, `/api/auth/google/admin`, `/api/auth/google/member`
 - Admin dashboard APIs require `admin` or `staff`
-- Members can use `/api/auth/me`, `/api/profile`, `/api/notifications`, and `/api/member/payments`
-- Settings write/delete and payment delete remain admin-restricted where configured
+- Members can use `/api/auth/me`, `/api/profile`, `/api/notifications`, `/api/member/payments`
+- Stuck? [docs/troubleshooting.md](../docs/troubleshooting.md)

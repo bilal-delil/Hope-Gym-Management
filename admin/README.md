@@ -1,114 +1,82 @@
-# [Horizon UI ⚡️](https://horizon-ui.com/horizon-ui-chakra) [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&logo=twitter)](https://twitter.com/intent/tweet?url=https://horizon-ui.com/&text=Check%20Horizon%20UI,%20the%20trendiest%20open-source%20admin%20template%20for%20Chakra%20UI%20&%20React!)
+# Hope Gym — Admin Dashboard
 
-![version](https://img.shields.io/badge/version-3.0.0-brightgreen.svg)
-![license](https://img.shields.io/badge/license-MIT-blue.svg)
-[![GitHub issues open](https://img.shields.io/github/issues/horizon-ui/horizon-ui-chakra.svg?maxAge=2592000)](https://github.com/horizon-ui/horizon-ui-chakra/issues?q=is%3Aopen+is%3Aissue)
+React admin UI for Hope Gym Management (Chakra UI). Talks to the Express API in `../nodejs-server` and uses **Google Sign-In only**.
 
-<p>&nbsp;</p>
+## Docs
 
-[<img alt="Horizon UI" src="https://i.ibb.co/fdyTwz1/introduction-image-2.png" /> ](https://github.com/horizon-ui/horizon-ui-chakra)
+| Guide | Link |
+|---|---|
+| Documentation hub | [`../docs/README.md`](../docs/README.md) |
+| Quick start | [`../docs/SETUP.md`](../docs/SETUP.md) |
+| **Linux install** | [`../docs/setup/linux.md`](../docs/setup/linux.md) |
+| **Windows install** | [`../docs/setup/windows.md`](../docs/setup/windows.md) |
+| Google OAuth | [`../docs/google-oauth.md`](../docs/google-oauth.md) |
+| Environment vars | [`../docs/environment.md`](../docs/environment.md) |
+| Troubleshooting | [`../docs/troubleshooting.md`](../docs/troubleshooting.md) |
+| API docs | [`../nodejs-server/README.md`](../nodejs-server/README.md) |
 
-<p>&nbsp;</p>
+## Prerequisites
 
-Get started and build your dream web app with Horizon UI, the most trendiest &
-innovative Open Source Admin Template for Chakra UI & React!
+1. API running on http://localhost:4000 ([API setup](../nodejs-server/README.md))
+2. Google Web Client ID configured ([OAuth guide](../docs/google-oauth.md))
+3. Node.js 20+
 
----
+## Install & run
 
-### Introduction
-
-Designed for those who like modern UI elements and beautiful websites. Made of
-hundred of elements, designed blocks and fully coded pages, Horizon UI is ready
-to help you create stunning websites and webapps.
-
-Save hundreds of hours trying to create and develop a dashboard from scratch.
-The fastest, most responsive & trendiest dashboard is here. Seriously.
-
-With Horizon UI you will find many examples for pages like NFTs Pages,
-Authentication Pages, Profile and so on. Just choose between a Basic Design or a
-cover and you are good to go!
-
-### 🎉 [NEW] Horizon UI Components
-
-All the main components from both versions, this will help you to see and interact with all & the latest added components of Horizon (also, new components are on the way, stay tuned)! ⚡️
-<a href="https://horizon-ui.com/components/?ref=readme-horizon" target="_blank">See all components</a>
-
-### Documentation
-
-Each element is well presented in a very complex documentation. You can read
-more about the <a href="https://horizon-ui.com/documentation/docs/introduction?ref=readme-horizon" target="_blank">documentation
-here.</a>
-
-### Quick Start
-
-Install Horizon UI by running either of the following:
-
-- Install NodeJS LTS from
-  [NodeJs Official Page](https://nodejs.org/en/?ref=horizon-documentation)
-  (NOTE: Product only works with LTS version)
-
-Clone the repository with the following command:
+### Linux / macOS
 
 ```bash
-git clone https://github.com/horizon-ui/horizon-ui-chakra.git
-```
-
-Run in terminal this command:
-
-```bash
+cd admin
+cp .env.example .env
+# edit .env
 npm install
-```
-
-Then run this command to start your local server
-
-```bash
 npm start
 ```
 
-### Example Pages
+### Windows (PowerShell)
 
-If you want to get inspiration or just show something directly to your clients,
-you can jump start your development with our pre-built example pages. You will
-be able to quickly set up the basic structure for your web project. View
-<a href="https://horizon-ui.com/horizon-ui-chakra/?ref=readme-horizon" target="_blank">example
-pages here.</a>
+```powershell
+cd admin
+copy .env.example .env
+# edit .env in Notepad
+npm install
+npm start
+```
 
-### Versions
+Open http://localhost:3000  
+Sign-in: http://localhost:3000/auth/sign-in
 
-| Free Version                                                                                                       | PRO Version                                                                                                               |
-| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| [![Horizon UI](https://i.ibb.co/fdyTwz1/introduction-image-2.png)](https://www.horizon-ui.com/?ref=readme-horizon) | [![Horizon UI PRO](https://i.ibb.co/R6jFKRM/introduction-image-1.png)](https://www.horizon-ui.com/pro?ref=readme-horizon) |
+Full OS steps: [Linux](../docs/setup/linux.md) · [Windows](../docs/setup/windows.md)
 
-### Figma Version
+## Environment
 
-Horizon UI is available in Figma format as well! Check it out on Figma
-Community! 🎨
-[See the Horizon UI Figma design files](https://bit.ly/horizon-figma)
+Copy from [`.env.example`](./.env.example):
 
-### Reporting Issues
+```env
+REACT_APP_API_URL=http://localhost:4000/api
+REACT_APP_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+```
 
-We use GitHub Issues as the official bug tracker for the Horizon UI. Here are
-some advices for our users that want to report an issue:
+Details: [docs/environment.md](../docs/environment.md)
 
-1. Make sure that you are using the latest version of the Horizon UI Dashbaord.
-   Check the CHANGELOG from your dashboard on our
-   [CHANGE LOG File](https://github.com/horizon-ui/horizon-ui-chakra/blob/main/CHANGELOG.md?ref=readme-horizon).
-2. Providing us reproducible steps for the issue will shorten the time it takes
-   for it to be fixed.
-3. Some issues may be browser specific, so specifying in what browser you
-   encountered the issue might help.
+Restart `npm start` after any `.env` change.
 
----
+## Scripts
 
-### Community
+| Command | Description |
+|---|---|
+| `npm start` | Dev server (port 3000) |
+| `npm run build` | Production build to `build/` |
+| `npm test` | CRA test runner |
 
-Connect with the community! Feel free to ask questions, report issues, and meet
-new people that already use Horizon UI!
+## What is wired
 
-💬 [Join the #HorizonUI Discord Community!](https://discord.gg/f6tEKFBd4m)
+- Google admin login → API JWT
+- Protected `/admin/*` routes
+- Sidebar modules: Dashboard, Members, Memberships, Attendance, Payments (approve/decline), Content, Announcements, Classes, Trainers, Schedule, Reports, Profile, Settings
+- Sign In is **not** in the sidebar (only `/auth/sign-in`)
 
-### Copyright and license
+## Notes
 
-⭐️ [Copyright 2023 Simmmple ](https://www.simmmple.com/?ref=readme-horizon)
-
-📄 [Horizon UI License](https://www.simmmple.com/licenses?ref=readme-horizon)
+- UI is based on Horizon UI / Chakra patterns, customized for Hope Gym.
+- Admin emails must be listed in the API `ADMIN_GOOGLE_EMAILS` allowlist.
