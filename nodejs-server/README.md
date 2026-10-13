@@ -77,8 +77,9 @@ Content-Type: application/json
 
 Access rules:
 
-- Email must already be an `admin`/`staff` user, **or**
-- Email must be listed in `ADMIN_GOOGLE_EMAILS`
+- Email **must** be listed in `ADMIN_GOOGLE_EMAILS` (comma-separated for multiple admins)
+- Any other Google account is rejected with `403`
+- `SEED_ADMIN_EMAIL` is also merged into that allowlist
 
 ### Members (PWA / users)
 
