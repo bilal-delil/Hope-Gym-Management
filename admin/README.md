@@ -59,6 +59,12 @@ Run in terminal this command:
 npm install
 ```
 
+> **Note:** If you encounter a peer dependency conflict (ERESOLVE error) due to React 19 incompatibility with `react-custom-scrollbars-2`, use:
+>
+> ```bash
+> npm install --legacy-peer-deps
+> ```
+
 Then run this command to start your local server
 
 ```bash
