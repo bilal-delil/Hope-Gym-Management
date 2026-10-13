@@ -1,8 +1,9 @@
 const express = require('express');
-const { authenticate } = require('../middleware/auth');
+const { authenticate, adminOnly } = require('../middleware/auth');
 
 const authRoutes = require('./authRoutes');
 const profileRoutes = require('./profileRoutes');
+const memberRoutes = require('./memberRoutes');
 const membersRoutes = require('./membersRoutes');
 const membershipPlansRoutes = require('./membershipPlansRoutes');
 const membershipsRoutes = require('./membershipsRoutes');
@@ -34,20 +35,22 @@ router.use('/auth', authRoutes);
 router.use(authenticate);
 
 router.use('/profile', profileRoutes);
-router.use('/members', membersRoutes);
-router.use('/membership-plans', membershipPlansRoutes);
-router.use('/memberships', membershipsRoutes);
-router.use('/attendance', attendanceRoutes);
-router.use('/payments', paymentsRoutes);
-router.use('/content', contentRoutes);
-router.use('/announcements', announcementsRoutes);
-router.use('/trainers', trainersRoutes);
-router.use('/classes', classesRoutes);
-router.use('/schedules', schedulesRoutes);
-router.use('/dashboard', dashboardRoutes);
-router.use('/reports', reportsRoutes);
-router.use('/settings', settingsRoutes);
 router.use('/notifications', notificationsRoutes);
-router.use('/search', searchRoutes);
+router.use('/member', memberRoutes);
+
+router.use('/members', adminOnly, membersRoutes);
+router.use('/membership-plans', adminOnly, membershipPlansRoutes);
+router.use('/memberships', adminOnly, membershipsRoutes);
+router.use('/attendance', adminOnly, attendanceRoutes);
+router.use('/payments', adminOnly, paymentsRoutes);
+router.use('/content', adminOnly, contentRoutes);
+router.use('/announcements', adminOnly, announcementsRoutes);
+router.use('/trainers', adminOnly, trainersRoutes);
+router.use('/classes', adminOnly, classesRoutes);
+router.use('/schedules', adminOnly, schedulesRoutes);
+router.use('/dashboard', adminOnly, dashboardRoutes);
+router.use('/reports', adminOnly, reportsRoutes);
+router.use('/settings', adminOnly, settingsRoutes);
+router.use('/search', adminOnly, searchRoutes);
 
 module.exports = router;

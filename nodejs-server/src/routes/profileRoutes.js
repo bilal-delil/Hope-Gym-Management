@@ -11,11 +11,4 @@ router.put(
   profileController.updateProfile
 );
 
-router.put(
-  '/password',
-  profileController.passwordValidators,
-  validate,
-  profileController.changePassword
-);
-
 module.exports = router;

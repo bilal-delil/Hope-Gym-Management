@@ -20,7 +20,8 @@ const authenticate = asyncHandler(async (req, res, next) => {
   }
 
   const result = await query(
-    `SELECT id, email, full_name, role, phone, avatar_url, is_active, created_at, updated_at
+    `SELECT id, email, google_sub, full_name, role, phone, avatar_url,
+            is_active, created_at, updated_at
      FROM users
      WHERE id = $1`,
     [payload.sub]
@@ -49,7 +50,12 @@ function authorize(...roles) {
   };
 }
 
+const adminOnly = authorize('admin', 'staff');
+const memberOnly = authorize('member');
+
 module.exports = {
   authenticate,
   authorize,
+  adminOnly,
+  memberOnly,
 };

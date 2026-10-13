@@ -2,7 +2,6 @@ require('dotenv').config();
 
 const fs = require('fs');
 const path = require('path');
-const bcrypt = require('bcryptjs');
 const dayjs = require('dayjs');
 const { pool, query } = require('./pool');
 const env = require('../config/env');
@@ -30,19 +29,16 @@ async function seed() {
   console.log('Seeding Hope Gym database...');
   const { proofPath, proofUrl } = ensureSeedProofImage();
 
-  const passwordHash = await bcrypt.hash(env.seed.adminPassword, 12);
-
   const adminResult = await query(
-    `INSERT INTO users (email, password_hash, full_name, role, phone, is_active)
-     VALUES ($1, $2, $3, 'admin', '+10000000000', true)
+    `INSERT INTO users (email, full_name, role, phone, is_active)
+     VALUES ($1, $2, 'admin', '+10000000000', true)
      ON CONFLICT (email) DO UPDATE
-       SET password_hash = EXCLUDED.password_hash,
-           full_name = EXCLUDED.full_name,
+       SET full_name = EXCLUDED.full_name,
            role = 'admin',
            is_active = true,
            updated_at = CURRENT_TIMESTAMP
      RETURNING id`,
-    [env.seed.adminEmail, passwordHash, env.seed.adminName]
+    [env.seed.adminEmail, env.seed.adminName]
   );
 
   const adminId = adminResult.rows[0].id;
@@ -157,33 +153,36 @@ async function seed() {
     );
 
     const paymentStatus = i % 3 === 0 ? 'pending' : i % 3 === 1 ? 'completed' : 'declined';
-
-    await query(
-      `INSERT INTO payments (
-         member_id, amount, currency, status, method, description,
-         proof_image_path, proof_image_url, paid_at, submitted_by,
-         reviewed_by, reviewed_at, rejection_reason
-       )
-       SELECT $1, $2, 'USD', $3, 'bank_transfer', $4, $5, $6,
-              CASE WHEN $3 = 'completed' THEN $7::timestamptz ELSE NULL END,
-              $8,
-              CASE WHEN $3 = 'pending' THEN NULL ELSE $8 END,
-              CASE WHEN $3 = 'pending' THEN NULL ELSE $7::timestamptz END,
-              CASE WHEN $3 = 'declined' THEN 'Unclear transfer screenshot' ELSE NULL END
-       WHERE NOT EXISTS (
-         SELECT 1 FROM payments WHERE member_id = $1 AND description = $4
-       )`,
-      [
-        memberIds[i],
-        plan.price,
-        paymentStatus,
-        `Seed payment for ${plan.name}`,
-        proofPath,
-        proofUrl,
-        start.toISOString(),
-        adminId,
-      ]
+    const description = `Seed payment for ${plan.name}`;
+    const exists = await query(
+      `SELECT id FROM payments WHERE member_id = $1 AND description = $2 LIMIT 1`,
+      [memberIds[i], description]
     );
+    if (!exists.rows[0]) {
+      await query(
+        `INSERT INTO payments (
+           member_id, amount, currency, status, method, description,
+           proof_image_path, proof_image_url, paid_at, submitted_by,
+           reviewed_by, reviewed_at, rejection_reason
+         ) VALUES (
+           $1, $2, 'USD', $3::payment_status, 'bank_transfer', $4,
+           $5, $6, $7, $8::uuid, $9::uuid, $10, $11
+         )`,
+        [
+          memberIds[i],
+          plan.price,
+          paymentStatus,
+          description,
+          proofPath,
+          proofUrl,
+          paymentStatus === 'completed' ? start.toISOString() : null,
+          adminId,
+          paymentStatus === 'pending' ? null : adminId,
+          paymentStatus === 'pending' ? null : start.toISOString(),
+          paymentStatus === 'declined' ? 'Unclear transfer screenshot' : null,
+        ]
+      );
+    }
   }
 
   for (let day = 0; day < 9; day += 1) {
@@ -317,7 +316,12 @@ async function seed() {
   );
 
   console.log('Seed completed.');
-  console.log(`Admin login: ${env.seed.adminEmail} / ${env.seed.adminPassword}`);
+  console.log(
+    `Admin Google sign-in allowlisted for: ${env.seed.adminEmail}`
+  );
+  console.log(
+    'Use POST /api/auth/google/admin with a Google idToken from that account.'
+  );
 }
 
 seed()

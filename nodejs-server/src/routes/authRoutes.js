@@ -6,10 +6,17 @@ const { authenticate } = require('../middleware/auth');
 const router = express.Router();
 
 router.post(
-  '/login',
-  authController.loginValidators,
+  '/google/admin',
+  authController.googleValidators,
   validate,
-  authController.login
+  authController.googleAdmin
+);
+
+router.post(
+  '/google/member',
+  authController.googleValidators,
+  validate,
+  authController.googleMember
 );
 
 router.get('/me', authenticate, authController.me);
