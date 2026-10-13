@@ -26,14 +26,27 @@ if (!googleClientIds.length) {
   throw new Error('GOOGLE_CLIENT_IDS must include at least one client ID');
 }
 
-const adminEmails = (
-  process.env.ADMIN_GOOGLE_EMAILS ||
-  process.env.SEED_ADMIN_EMAIL ||
-  ''
-)
-  .split(',')
-  .map((email) => email.trim().toLowerCase())
-  .filter(Boolean);
+function parseEmailList(value) {
+  return String(value || '')
+    .split(',')
+    .map((email) => email.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+// Only these Google emails may use /api/auth/google/admin.
+// Supports multiple admins via comma-separated ADMIN_GOOGLE_EMAILS.
+const adminEmails = Array.from(
+  new Set([
+    ...parseEmailList(process.env.ADMIN_GOOGLE_EMAILS),
+    ...parseEmailList(process.env.SEED_ADMIN_EMAIL),
+  ])
+);
+
+if (!adminEmails.length) {
+  throw new Error(
+    'Set ADMIN_GOOGLE_EMAILS (comma-separated) with at least one admin Gmail'
+  );
+}
 
 module.exports = {
   nodeEnv: process.env.NODE_ENV || 'development',
@@ -45,11 +58,7 @@ module.exports = {
   googleClientIds,
   adminEmails,
   seed: {
-    adminEmail: (
-      process.env.SEED_ADMIN_EMAIL ||
-      adminEmails[0] ||
-      'admin@hopegym.local'
-    ).toLowerCase(),
+    adminEmails,
     adminName: process.env.SEED_ADMIN_NAME || 'Hope Admin',
   },
 };

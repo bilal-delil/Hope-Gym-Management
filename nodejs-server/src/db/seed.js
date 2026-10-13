@@ -29,19 +29,28 @@ async function seed() {
   console.log('Seeding Hope Gym database...');
   const { proofPath, proofUrl } = ensureSeedProofImage();
 
-  const adminResult = await query(
-    `INSERT INTO users (email, full_name, role, phone, is_active)
-     VALUES ($1, $2, 'admin', '+10000000000', true)
-     ON CONFLICT (email) DO UPDATE
-       SET full_name = EXCLUDED.full_name,
-           role = 'admin',
-           is_active = true,
-           updated_at = CURRENT_TIMESTAMP
-     RETURNING id`,
-    [env.seed.adminEmail, env.seed.adminName]
-  );
+  const adminIds = [];
+  for (const [index, email] of env.seed.adminEmails.entries()) {
+    const adminResult = await query(
+      `INSERT INTO users (email, full_name, role, phone, is_active)
+       VALUES ($1, $2, 'admin', '+10000000000', true)
+       ON CONFLICT (email) DO UPDATE
+         SET full_name = EXCLUDED.full_name,
+             role = 'admin',
+             is_active = true,
+             updated_at = CURRENT_TIMESTAMP
+       RETURNING id`,
+      [
+        email,
+        env.seed.adminEmails.length === 1
+          ? env.seed.adminName
+          : `${env.seed.adminName} ${index + 1}`,
+      ]
+    );
+    adminIds.push(adminResult.rows[0].id);
+  }
 
-  const adminId = adminResult.rows[0].id;
+  const adminId = adminIds[0];
 
   await query(
     `INSERT INTO settings (key, value, description, updated_by)
@@ -317,10 +326,10 @@ async function seed() {
 
   console.log('Seed completed.');
   console.log(
-    `Admin Google sign-in allowlisted for: ${env.seed.adminEmail}`
+    `Admin Google sign-in allowlisted for: ${env.seed.adminEmails.join(', ')}`
   );
   console.log(
-    'Use POST /api/auth/google/admin with a Google idToken from that account.'
+    'Only those emails can use POST /api/auth/google/admin. Any other Gmail is rejected.'
   );
 }
 

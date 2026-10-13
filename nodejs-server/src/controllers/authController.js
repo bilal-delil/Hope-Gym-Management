@@ -44,21 +44,16 @@ function splitName(fullName) {
   };
 }
 
-async function linkGoogleIdentity(userId, google) {
-  await query(
-    `UPDATE users
-     SET google_sub = COALESCE(google_sub, $1),
-         full_name = COALESCE(NULLIF($2, ''), full_name),
-         avatar_url = COALESCE($3, avatar_url),
-         last_login_at = CURRENT_TIMESTAMP,
-         updated_at = CURRENT_TIMESTAMP
-     WHERE id = $4`,
-    [google.googleSub, google.fullName, google.avatarUrl, userId]
-  );
-}
-
 const googleAdmin = asyncHandler(async (req, res) => {
   const google = await verifyGoogleIdToken(req.body.idToken);
+
+  // Strict allowlist: only configured admin emails can use the admin app.
+  if (!env.adminEmails.includes(google.email)) {
+    throw new ApiError(
+      403,
+      'This Google account is not authorized for admin access'
+    );
+  }
 
   let userResult = await query(
     `SELECT ${USER_COLUMNS}
@@ -71,13 +66,6 @@ const googleAdmin = asyncHandler(async (req, res) => {
   let user = userResult.rows[0];
 
   if (!user) {
-    if (!env.adminEmails.includes(google.email)) {
-      throw new ApiError(
-        403,
-        'This Google account is not authorized for admin access'
-      );
-    }
-
     userResult = await query(
       `INSERT INTO users (email, google_sub, full_name, role, avatar_url, is_active, last_login_at)
        VALUES ($1, $2, $3, 'admin', $4, true, CURRENT_TIMESTAMP)
@@ -86,7 +74,7 @@ const googleAdmin = asyncHandler(async (req, res) => {
     );
     user = userResult.rows[0];
   } else {
-    if (!['admin', 'staff'].includes(user.role)) {
+    if (user.role === 'member') {
       throw new ApiError(
         403,
         'This Google account is registered as a member, not admin/staff'
@@ -99,7 +87,19 @@ const googleAdmin = asyncHandler(async (req, res) => {
       throw new ApiError(403, 'Google account mismatch for this admin email');
     }
 
-    await linkGoogleIdentity(user.id, google);
+    // Ensure allowlisted accounts stay admin/staff.
+    await query(
+      `UPDATE users
+       SET role = CASE WHEN role IN ('admin', 'staff') THEN role ELSE 'admin' END,
+           google_sub = COALESCE(google_sub, $1),
+           full_name = COALESCE(NULLIF($2, ''), full_name),
+           avatar_url = COALESCE($3, avatar_url),
+           last_login_at = CURRENT_TIMESTAMP,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE id = $4`,
+      [google.googleSub, google.fullName, google.avatarUrl, user.id]
+    );
+
     userResult = await query(`SELECT ${USER_COLUMNS} FROM users WHERE id = $1`, [
       user.id,
     ]);
