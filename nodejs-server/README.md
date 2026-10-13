@@ -26,61 +26,79 @@ Express + PostgreSQL backend for the Hope Gym Management admin dashboard.
 - Node.js + Express
 - PostgreSQL (`pg`)
 - Schema migrations via `node-pg-migrate`
-- JWT auth (`admin` / `staff` roles)
+- **Google Auth only** (no passwords) → server JWT
+- Roles: `admin`, `staff`, `member`
 - `express-validator` request validation
 
 ## Setup
 
 1. Create a PostgreSQL database, for example `hope_gym`.
-2. Copy env file and edit values:
+2. Create Google OAuth Web Client ID(s) in Google Cloud Console (one for admin app, one for PWA if needed).
+3. Copy env file and edit values:
 
 ```bash
 cp .env.example .env
 ```
 
-3. Install dependencies:
+Set at least:
+
+- `DATABASE_URL`
+- `JWT_SECRET`
+- `GOOGLE_CLIENT_IDS`
+- `ADMIN_GOOGLE_EMAILS` (your Gmail(s) allowed as admin)
+- `SEED_ADMIN_EMAIL` (same as one of the admin emails)
+
+4. Install / migrate / seed / run:
 
 ```bash
 npm install
-```
-
-4. Run migrations:
-
-```bash
 npm run migrate
-```
-
-5. Seed demo admin + sample data:
-
-```bash
 npm run seed
-```
-
-6. Start the API:
-
-```bash
 npm run dev
-# or
-npm start
 ```
 
-Default URL: `http://localhost:4000`
-
+Default URL: `http://localhost:4000`  
 Health check: `GET /api/health`
 
-## Auth
+## Auth (Google only)
+
+There is **no email/password login**.
+
+### Admin / staff
+
+Frontend gets a Google ID token, then:
 
 ```http
-POST /api/auth/login
+POST /api/auth/google/admin
 Content-Type: application/json
 
-{
-  "email": "admin@hopegym.local",
-  "password": "Admin123!"
-}
+{ "idToken": "<google-id-token>" }
 ```
 
-Use the returned token:
+Access rules:
+
+- Email must already be an `admin`/`staff` user, **or**
+- Email must be listed in `ADMIN_GOOGLE_EMAILS`
+
+### Members (PWA / users)
+
+```http
+POST /api/auth/google/member
+Content-Type: application/json
+
+{ "idToken": "<google-id-token>" }
+```
+
+Creates/links a `users` row (`role=member`) and a `members` profile.
+
+### Current user
+
+```http
+GET /api/auth/me
+Authorization: Bearer <api-jwt>
+```
+
+Use the returned API JWT on all other requests:
 
 ```http
 Authorization: Bearer <token>
@@ -137,6 +155,7 @@ Content-Type: application/json
 
 ## Notes
 
-- All authenticated routes require a valid JWT except `/api/auth/login` and `/api/health`.
-- Settings write/delete endpoints are admin-only.
-- Payment delete is admin-only.
+- Public routes: `/api/health`, `/api/auth/google/admin`, `/api/auth/google/member`
+- Admin dashboard APIs require `admin` or `staff`
+- Members can use `/api/auth/me`, `/api/profile`, `/api/notifications`, and `/api/member/payments`
+- Settings write/delete and payment delete remain admin-restricted where configured
