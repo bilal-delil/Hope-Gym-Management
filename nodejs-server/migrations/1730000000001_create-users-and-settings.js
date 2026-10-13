@@ -1,6 +1,6 @@
 /** @type {import('node-pg-migrate').MigrationBuilder} */
 exports.up = (pgm) => {
-  pgm.createType('user_role', ['admin', 'staff']);
+  pgm.createType('user_role', ['admin', 'staff', 'member']);
 
   pgm.createTable('users', {
     id: {
@@ -9,9 +9,9 @@ exports.up = (pgm) => {
       default: pgm.func('gen_random_uuid()'),
     },
     email: { type: 'varchar(255)', notNull: true, unique: true },
-    password_hash: { type: 'text', notNull: true },
+    google_sub: { type: 'varchar(255)', unique: true },
     full_name: { type: 'varchar(150)', notNull: true },
-    role: { type: 'user_role', notNull: true, default: 'staff' },
+    role: { type: 'user_role', notNull: true, default: 'member' },
     phone: { type: 'varchar(50)' },
     avatar_url: { type: 'text' },
     is_active: { type: 'boolean', notNull: true, default: true },
@@ -27,6 +27,9 @@ exports.up = (pgm) => {
       default: pgm.func('CURRENT_TIMESTAMP'),
     },
   });
+
+  pgm.createIndex('users', 'role');
+  pgm.createIndex('users', 'google_sub');
 
   pgm.createTable('settings', {
     id: {

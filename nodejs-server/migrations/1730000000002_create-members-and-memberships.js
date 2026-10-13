@@ -21,6 +21,12 @@ exports.up = (pgm) => {
       primaryKey: true,
       default: pgm.func('gen_random_uuid()'),
     },
+    user_id: {
+      type: 'uuid',
+      unique: true,
+      references: 'users',
+      onDelete: 'SET NULL',
+    },
     member_code: { type: 'varchar(50)', notNull: true, unique: true },
     first_name: { type: 'varchar(100)', notNull: true },
     last_name: { type: 'varchar(100)', notNull: true },
@@ -57,6 +63,7 @@ exports.up = (pgm) => {
   });
 
   pgm.createIndex('members', 'status');
+  pgm.createIndex('members', 'user_id');
   pgm.createIndex('members', ['last_name', 'first_name']);
 
   pgm.createTable('membership_plans', {
