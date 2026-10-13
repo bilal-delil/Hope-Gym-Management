@@ -6,10 +6,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "migrate": "node-pg-migrate -f migrate.config.js up",
-    "migrate:down": "node-pg-migrate -f migrate.config.js down",
-    "migrate:create": "node-pg-migrate -f migrate.config.js create",
-    "seed": "node src/db/seed.js"
+    "migrate": "node -r ./scripts/load-env.js ./node_modules/node-pg-migrate/bin/node-pg-migrate.js up",
+    "migrate:down": "node -r ./scripts/load-env.js ./node_modules/node-pg-migrate/bin/node-pg-migrate.js down",
+    "migrate:create": "node -r ./scripts/load-env.js ./node_modules/node-pg-migrate/bin/node-pg-migrate.js create",
+    "seed": "node -r ./scripts/load-env.js src/db/seed.js"
   },
   "keywords": [
     "gym",
@@ -20,12 +20,12 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dayjs": "^1.11.18",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "express-validator": "^7.2.1",
+    "google-auth-library": "^11.3.0",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
