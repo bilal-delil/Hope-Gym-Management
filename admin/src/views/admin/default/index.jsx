@@ -1,38 +1,15 @@
-/*!
-  _   _  ___  ____  ___ ________  _   _   _   _ ___   
- | | | |/ _ \|  _ \|_ _|__  / _ \| \ | | | | | |_ _| 
- | |_| | | | | |_) || |  / / | | |  \| | | | | || | 
- |  _  | |_| |  _ < | | / /| |_| | |\  | | |_| || |
- |_| |_|\___/|_| \_\___/____\___/|_| \_|  \___/|___|
-                                                                                                                                                                                                                                                                                                                                       
-=========================================================
-* Horizon UI - v1.1.0
-=========================================================
-
-* Product Page: https://www.horizon-ui.com/
-* Copyright 2023 Horizon UI (https://www.horizon-ui.com/)
-
-* Designed and Coded by Simmmple
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-
-// Chakra imports
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Flex,
   Icon,
   SimpleGrid,
+  Spinner,
+  Text,
   useColorModeValue,
-} from "@chakra-ui/react";
-// Custom components
-import MiniCalendar from "components/calendar/MiniCalendar";
-import MiniStatistics from "components/card/MiniStatistics";
-import IconBox from "components/icons/IconBox";
-import React from "react";
+} from '@chakra-ui/react';
+import MiniStatistics from 'components/card/MiniStatistics';
+import IconBox from 'components/icons/IconBox';
 import {
   MdPeople,
   MdCheckCircle,
@@ -40,29 +17,54 @@ import {
   MdPersonAdd,
   MdPayment,
   MdWarning,
-} from "react-icons/md";
-import CheckTable from "views/admin/default/components/CheckTable";
-import ComplexTable from "views/admin/default/components/ComplexTable";
-import DailyTraffic from "views/admin/default/components/DailyTraffic";
-import PieCard from "views/admin/default/components/PieCard";
-import Tasks from "views/admin/default/components/Tasks";
-import TotalSpent from "views/admin/default/components/TotalSpent";
-import WeeklyRevenue from "views/admin/default/components/WeeklyRevenue";
-import {
-  columnsDataCheck,
-  columnsDataComplex,
-} from "views/admin/default/variables/columnsData";
-import tableDataCheck from "views/admin/default/variables/tableDataCheck.json";
-import tableDataComplex from "views/admin/default/variables/tableDataComplex.json";
+} from 'react-icons/md';
+import Card from 'components/card/Card';
+import DataTableCard, { StatusBadge } from 'components/admin/DataTableCard';
+import api from 'lib/api';
 
-export default function UserReports() {
-  // Chakra Color Mode
-  const brandColor = useColorModeValue("brand.500", "white");
-  const boxBg = useColorModeValue("secondaryGray.300", "whiteAlpha.100");
+export default function DashboardPage() {
+  const brandColor = useColorModeValue('brand.500', 'white');
+  const boxBg = useColorModeValue('secondaryGray.300', 'whiteAlpha.100');
+  const textColor = useColorModeValue('secondaryGray.900', 'white');
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const result = await api.get('/dashboard/overview');
+        setData(result.data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  if (loading) {
+    return (
+      <Flex pt='120px' justify='center'>
+        <Spinner size='lg' color='brand.500' />
+      </Flex>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box pt='120px'>
+        <Text color='red.400'>{error}</Text>
+      </Box>
+    );
+  }
+
+  const kpis = data?.kpis || {};
+
   return (
-    <Box pt={{ base: "130px", md: "80px", xl: "80px" }}>
+    <Box pt={{ base: '130px', md: '80px', xl: '80px' }}>
       <SimpleGrid
-        columns={{ base: 1, md: 2, lg: 3, "2xl": 6 }}
+        columns={{ base: 1, md: 2, lg: 3, '2xl': 6 }}
         gap='20px'
         mb='20px'>
         <MiniStatistics
@@ -71,13 +73,11 @@ export default function UserReports() {
               w='56px'
               h='56px'
               bg={boxBg}
-              icon={
-                <Icon w='32px' h='32px' as={MdPeople} color={brandColor} />
-              }
+              icon={<Icon w='32px' h='32px' as={MdPeople} color={brandColor} />}
             />
           }
           name='Total Members'
-          value='450'
+          value={String(kpis.total_members ?? 0)}
         />
         <MiniStatistics
           startContent={
@@ -91,7 +91,7 @@ export default function UserReports() {
             />
           }
           name='Active Members'
-          value='382'
+          value={String(kpis.active_members ?? 0)}
         />
         <MiniStatistics
           startContent={
@@ -99,25 +99,11 @@ export default function UserReports() {
               w='56px'
               h='56px'
               bg={boxBg}
-              icon={
-                <Icon w='32px' h='32px' as={MdWarning} color={brandColor} />
-              }
+              icon={<Icon w='32px' h='32px' as={MdWarning} color={brandColor} />}
             />
           }
           name='Expired Memberships'
-          value='68'
-        />
-        <MiniStatistics
-          startContent={
-            <IconBox
-              w='56px'
-              h='56px'
-              bg='linear-gradient(90deg, #4481EB 0%, #04BEFE 100%)'
-              icon={<Icon w='28px' h='28px' as={MdPersonAdd} color='white' />}
-            />
-          }
-          name="Today's Check-ins"
-          value='124'
+          value={String(kpis.expired_memberships ?? 0)}
         />
         <MiniStatistics
           startContent={
@@ -135,8 +121,8 @@ export default function UserReports() {
               }
             />
           }
-          name='New Members'
-          value='12'
+          name="Today's Check-ins"
+          value={String(kpis.todays_checkins ?? 0)}
         />
         <MiniStatistics
           startContent={
@@ -145,36 +131,84 @@ export default function UserReports() {
               h='56px'
               bg={boxBg}
               icon={
-                <Icon w='32px' h='32px' as={MdPayment} color={brandColor} />
+                <Icon w='32px' h='32px' as={MdPersonAdd} color={brandColor} />
               }
             />
           }
+          name='New Members'
+          value={String(kpis.new_members ?? 0)}
+        />
+        <MiniStatistics
+          startContent={
+            <IconBox
+              w='56px'
+              h='56px'
+              bg={boxBg}
+              icon={<Icon w='32px' h='32px' as={MdPayment} color={brandColor} />}
+            />
+          }
           name='Monthly Revenue'
-          value='$3,240'
+          value={`$${Number(kpis.monthly_revenue || 0).toLocaleString()}`}
         />
       </SimpleGrid>
 
       <SimpleGrid columns={{ base: 1, md: 2, xl: 2 }} gap='20px' mb='20px'>
-        <TotalSpent />
-        <WeeklyRevenue />
+        <Card p='20px'>
+          <Text color={textColor} fontWeight='700' mb='12px'>
+            Monthly revenue
+          </Text>
+          <Text mb='8px' fontSize='sm'>
+            Growth: {data?.monthlyRevenue?.growthPercent ?? 0}%
+          </Text>
+          {(data?.monthlyRevenue?.series || []).map((item) => (
+            <Flex key={item.label} justify='space-between' py='6px'>
+              <Text>{item.label}</Text>
+              <Text fontWeight='600'>${Number(item.revenue).toFixed(2)}</Text>
+            </Flex>
+          ))}
+        </Card>
+        <Card p='20px'>
+          <Text color={textColor} fontWeight='700' mb='12px'>
+            Membership status
+          </Text>
+          <Text>
+            Active: {data?.membershipStatus?.activePercent ?? 0}% (
+            {data?.membershipStatus?.active ?? 0})
+          </Text>
+          <Text mt='8px'>
+            Expired: {data?.membershipStatus?.expiredPercent ?? 0}% (
+            {data?.membershipStatus?.expired ?? 0})
+          </Text>
+          <Text mt='16px' fontWeight='700'>
+            Pending payments: {kpis.pending_payments ?? 0}
+          </Text>
+        </Card>
       </SimpleGrid>
-      <SimpleGrid columns={{ base: 1, md: 1, xl: 2 }} gap='20px' mb='20px'>
-        <CheckTable columnsData={columnsDataCheck} tableData={tableDataCheck} />
-        <SimpleGrid columns={{ base: 1, md: 2, xl: 2 }} gap='20px'>
-          <DailyTraffic />
-          <PieCard />
-        </SimpleGrid>
-      </SimpleGrid>
-      <SimpleGrid columns={{ base: 1, md: 1, xl: 2 }} gap='20px' mb='20px'>
-        <ComplexTable
-          columnsData={columnsDataComplex}
-          tableData={tableDataComplex}
-        />
-        <SimpleGrid columns={{ base: 1, md: 2, xl: 2 }} gap='20px'>
-          <Tasks />
-          <MiniCalendar h='100%' minW='100%' selectRange={false} />
-        </SimpleGrid>
-      </SimpleGrid>
+
+      <DataTableCard
+        rows={data?.membershipPlans || []}
+        emptyText='No membership plans yet'
+        columns={[
+          { key: 'name', label: 'Plan' },
+          {
+            key: 'progress',
+            label: 'Share',
+            render: (row) => `${row.progress || 0}%`,
+          },
+          { key: 'quantity', label: 'Active qty' },
+          {
+            key: 'date',
+            label: 'As of',
+            render: (row) =>
+              row.date ? new Date(row.date).toLocaleDateString() : '—',
+          },
+          {
+            key: 'status',
+            label: 'Status',
+            render: () => <StatusBadge value='active' />,
+          },
+        ]}
+      />
     </Box>
   );
 }

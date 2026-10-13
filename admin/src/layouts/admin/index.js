@@ -114,7 +114,13 @@ export default function Dashboard(props) {
             setToggleSidebar,
           }}
         >
-          <Sidebar routes={routes} display="none" {...rest} />
+          <Sidebar
+            routes={routes.filter(
+              (route) => route.layout === '/admin' && !route.hideInSidebar
+            )}
+            display="none"
+            {...rest}
+          />
           <Box
             float="right"
             minHeight="100vh"

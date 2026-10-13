@@ -1,118 +1,88 @@
-/*!
-  _   _  ___  ____  ___ ________  _   _   _   _ ___   
- | | | |/ _ \|  _ \|_ _|__  / _ \| \ | | | | | |_ _| 
- | |_| | | | | |_) || |  / / | | |  \| | | | | || | 
- |  _  | |_| |  _ < | | / /| |_| | |\  | | |_| || |
- |_| |_|\___/|_| \_\___/____\___/|_| \_|  \___/|___|
-                                                                                                                                                                                                                                                                                                                                       
-=========================================================
-* Horizon UI - v1.1.0
-=========================================================
+import React, { useState } from 'react';
+import {
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  SimpleGrid,
+  Text,
+  useColorModeValue,
+  useToast,
+} from '@chakra-ui/react';
+import Card from 'components/card/Card';
+import PageShell from 'components/admin/PageShell';
+import { useAuth } from 'contexts/AuthContext';
+import api from 'lib/api';
 
-* Product Page: https://www.horizon-ui.com/
-* Copyright 2023 Horizon UI (https://www.horizon-ui.com/)
+export default function ProfilePage() {
+  const { user, refreshMe, logout } = useAuth();
+  const toast = useToast();
+  const textColor = useColorModeValue('navy.700', 'white');
+  const [form, setForm] = useState({
+    fullName: user?.fullName || '',
+    phone: user?.phone || '',
+  });
+  const [saving, setSaving] = useState(false);
 
-* Designed and Coded by Simmmple
+  const save = async () => {
+    setSaving(true);
+    try {
+      await api.put('/profile', form);
+      await refreshMe();
+      toast({ title: 'Profile updated', status: 'success', duration: 2000 });
+    } catch (err) {
+      toast({ title: err.message, status: 'error', duration: 3000 });
+    } finally {
+      setSaving(false);
+    }
+  };
 
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-*/
-
-// Chakra imports
-import { Box, Grid } from "@chakra-ui/react";
-
-// Custom components
-import Banner from "views/admin/profile/components/Banner";
-import General from "views/admin/profile/components/General";
-import Notifications from "views/admin/profile/components/Notifications";
-import Projects from "views/admin/profile/components/Projects";
-import Storage from "views/admin/profile/components/Storage";
-import Upload from "views/admin/profile/components/Upload";
-
-// Assets
-import banner from "assets/img/auth/banner.png";
-import avatar from "assets/img/avatars/avatar4.png";
-import React from "react";
-
-export default function Overview() {
   return (
-    <Box pt={{ base: "130px", md: "80px", xl: "80px" }}>
-      {/* Main Fields */}
-      <Grid
-        templateColumns={{
-          base: "1fr",
-          lg: "1.34fr 1fr 1.62fr",
-        }}
-        templateRows={{
-          base: "repeat(3, 1fr)",
-          lg: "1fr",
-        }}
-        gap={{ base: "20px", xl: "20px" }}>
-        <Banner
-          gridArea='1 / 1 / 2 / 2'
-          banner={banner}
-          avatar={avatar}
-          name='Adela Parkson'
-          job='Product Designer'
-          posts='17'
-          followers='9.7k'
-          following='274'
-        />
-        <Storage
-          gridArea={{ base: "2 / 1 / 3 / 2", lg: "1 / 2 / 2 / 3" }}
-          used={25.6}
-          total={50}
-        />
-        <Upload
-          gridArea={{
-            base: "3 / 1 / 4 / 2",
-            lg: "1 / 3 / 2 / 4",
-          }}
-          minH={{ base: "auto", lg: "420px", "2xl": "365px" }}
-          pe='20px'
-          pb={{ base: "100px", lg: "20px" }}
-        />
-      </Grid>
-      <Grid
-        mb='20px'
-        templateColumns={{
-          base: "1fr",
-          lg: "repeat(2, 1fr)",
-          "2xl": "1.34fr 1.62fr 1fr",
-        }}
-        templateRows={{
-          base: "1fr",
-          lg: "repeat(2, 1fr)",
-          "2xl": "1fr",
-        }}
-        gap={{ base: "20px", xl: "20px" }}>
-        <Projects
-          gridArea='1 / 2 / 2 / 2'
-          banner={banner}
-          avatar={avatar}
-          name='Adela Parkson'
-          job='Product Designer'
-          posts='17'
-          followers='9.7k'
-          following='274'
-        />
-        <General
-          gridArea={{ base: "2 / 1 / 3 / 2", lg: "1 / 2 / 2 / 3" }}
-          minH='365px'
-          pe='20px'
-        />
-        <Notifications
-          used={25.6}
-          total={50}
-          gridArea={{
-            base: "3 / 1 / 4 / 2",
-            lg: "2 / 1 / 3 / 3",
-            "2xl": "1 / 3 / 2 / 4",
-          }}
-        />
-      </Grid>
-    </Box>
+    <PageShell title='Profile' subtitle='Your admin account details'>
+      <SimpleGrid columns={{ base: 1, md: 2 }} gap='20px'>
+        <Card p='24px'>
+          <Text color={textColor} fontWeight='700' mb='16px'>
+            Account
+          </Text>
+          <Text mb='8px'>Email: {user?.email}</Text>
+          <Text mb='8px'>Role: {user?.role}</Text>
+          <Text mb='20px'>
+            Google linked: {user?.googleLinked ? 'Yes' : 'No'}
+          </Text>
+          <FormControl mb='12px'>
+            <FormLabel>Full name</FormLabel>
+            <Input
+              value={form.fullName}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, fullName: e.target.value }))
+              }
+            />
+          </FormControl>
+          <FormControl mb='16px'>
+            <FormLabel>Phone</FormLabel>
+            <Input
+              value={form.phone || ''}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, phone: e.target.value }))
+              }
+            />
+          </FormControl>
+          <Button colorScheme='brand' isLoading={saving} onClick={save}>
+            Save profile
+          </Button>
+        </Card>
+        <Card p='24px'>
+          <Text color={textColor} fontWeight='700' mb='16px'>
+            Session
+          </Text>
+          <Text mb='20px' fontSize='sm'>
+            Authentication is Google-only. Sign out to switch accounts.
+          </Text>
+          <Button colorScheme='red' variant='outline' onClick={logout}>
+            Sign out
+          </Button>
+        </Card>
+      </SimpleGrid>
+    </PageShell>
   );
 }
