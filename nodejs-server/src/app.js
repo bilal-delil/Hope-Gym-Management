@@ -11,12 +11,31 @@ const app = express();
 
 app.use(
   helmet({
+    // Allow admin/PWA on other origins to call the API and use Google GIS.
     crossOriginResourcePolicy: { policy: 'cross-origin' },
+    crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   })
 );
+
 app.use(
   cors({
-    origin: env.corsOrigins,
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      if (env.corsOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      if (env.nodeEnv !== 'production' && env.isDevFriendlyOrigin?.(origin)) {
+        callback(null, true);
+        return;
+      }
+      // Fallback: allow listed origins only
+      const allowed = env.corsOrigins.includes(origin);
+      callback(allowed ? null : new Error(`CORS blocked: ${origin}`), allowed);
+    },
     credentials: true,
   })
 );
