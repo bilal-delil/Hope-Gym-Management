@@ -26,6 +26,9 @@ export function SidebarLinks(props) {
   // this function creates the links from the secondary accordions (for example auth -> sign-in -> default)
   const createLinks = (routes) => {
     return routes.map((route, index) => {
+      if (route.hideInSidebar) {
+        return null;
+      }
       if (route.category) {
         return (
           <>
@@ -46,10 +49,7 @@ export function SidebarLinks(props) {
             {createLinks(route.items)}
           </>
         );
-      } else if (
-        route.layout === "/admin" ||
-        route.layout === "/auth"
-      ) {
+      } else if (route.layout === "/admin") {
         return (
           <NavLink key={index} to={route.layout + route.path}>
             {route.icon ? (

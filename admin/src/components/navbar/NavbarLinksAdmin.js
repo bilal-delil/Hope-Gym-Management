@@ -19,16 +19,33 @@ import { ItemContent } from 'components/menu/ItemContent';
 import { SearchBar } from 'components/navbar/searchBar/SearchBar';
 import { SidebarResponsive } from 'components/sidebar/Sidebar';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 // Assets
 import navImage from 'assets/img/layout/Navbar.png';
 import { MdNotificationsNone, MdInfoOutline } from 'react-icons/md';
 import { IoMdMoon, IoMdSunny } from 'react-icons/io';
 import { FaEthereum } from 'react-icons/fa';
 import routes from 'routes';
+import { useAuth } from 'contexts/AuthContext';
+import api from 'lib/api';
+
 export default function HeaderLinks(props) {
   const { secondary } = props;
   const { colorMode, toggleColorMode } = useColorMode();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const sidebarRoutes = routes.filter(
+    (route) => route.layout === '/admin' && !route.hideInSidebar
+  );
+
+  useEffect(() => {
+    api
+      .get('/notifications?limit=5')
+      .then((result) => setNotifications(result.data || []))
+      .catch(() => setNotifications([]));
+  }, []);
   // Chakra Color Mode
   const navbarIcon = useColorModeValue('gray.400', 'white');
   let menuBg = useColorModeValue('white', 'navy.800');
@@ -98,7 +115,7 @@ export default function HeaderLinks(props) {
           </Text>
         </Text>
       </Flex>
-      <SidebarResponsive routes={routes} />
+      <SidebarResponsive routes={sidebarRoutes} />
       <Menu>
         <MenuButton p="0px">
           <Icon
@@ -131,29 +148,36 @@ export default function HeaderLinks(props) {
               color={textColorBrand}
               ms="auto"
               cursor="pointer"
+              onClick={() =>
+                api.post('/notifications/read-all').then(() =>
+                  setNotifications((prev) =>
+                    prev.map((n) => ({ ...n, is_read: true }))
+                  )
+                )
+              }
             >
               Mark all read
             </Text>
           </Flex>
           <Flex flexDirection="column">
-            <MenuItem
-              _hover={{ bg: 'none' }}
-              _focus={{ bg: 'none' }}
-              px="0"
-              borderRadius="8px"
-              mb="10px"
-            >
-              <ItemContent info="Hope Gym Management" />
-            </MenuItem>
-            <MenuItem
-              _hover={{ bg: 'none' }}
-              _focus={{ bg: 'none' }}
-              px="0"
-              borderRadius="8px"
-              mb="10px"
-            >
-              <ItemContent info="Hope Gym Member PWA" />
-            </MenuItem>
+            {notifications.length === 0 ? (
+              <Text fontSize="sm" color={textColor}>
+                No notifications
+              </Text>
+            ) : (
+              notifications.map((item) => (
+                <MenuItem
+                  key={item.id}
+                  _hover={{ bg: 'none' }}
+                  _focus={{ bg: 'none' }}
+                  px="0"
+                  borderRadius="8px"
+                  mb="10px"
+                >
+                  <ItemContent info={item.title} />
+                </MenuItem>
+              ))
+            )}
           </Flex>
         </MenuList>
       </Menu>
@@ -243,7 +267,8 @@ export default function HeaderLinks(props) {
           <Avatar
             _hover={{ cursor: 'pointer' }}
             color="white"
-            name="Adela Parkson"
+            name={user?.fullName || 'Admin'}
+            src={user?.avatarUrl || undefined}
             bg="#11047A"
             size="sm"
             w="40px"
@@ -270,7 +295,7 @@ export default function HeaderLinks(props) {
               fontWeight="700"
               color={textColor}
             >
-              👋&nbsp; Hey, Adela
+              {user?.fullName || 'Admin'}
             </Text>
           </Flex>
           <Flex flexDirection="column" p="10px">
@@ -279,16 +304,18 @@ export default function HeaderLinks(props) {
               _focus={{ bg: 'none' }}
               borderRadius="8px"
               px="14px"
+              onClick={() => navigate('/admin/profile')}
             >
-              <Text fontSize="sm">Profile Settings</Text>
+              <Text fontSize="sm">Profile</Text>
             </MenuItem>
             <MenuItem
               _hover={{ bg: 'none' }}
               _focus={{ bg: 'none' }}
               borderRadius="8px"
               px="14px"
+              onClick={() => navigate('/admin/settings')}
             >
-              <Text fontSize="sm">Newsletter Settings</Text>
+              <Text fontSize="sm">Settings</Text>
             </MenuItem>
             <MenuItem
               _hover={{ bg: 'none' }}
@@ -296,6 +323,10 @@ export default function HeaderLinks(props) {
               color="red.400"
               borderRadius="8px"
               px="14px"
+              onClick={() => {
+                logout();
+                navigate('/auth/sign-in');
+              }}
             >
               <Text fontSize="sm">Log out</Text>
             </MenuItem>

@@ -1,231 +1,111 @@
 # Hope Gym Management
 
-Hope Gym Management is a web-based gym administration project designed to provide a modern foundation for managing gym operations through a centralized dashboard. The repository contains an administrator interface and a separate Progressive Web App (PWA) starter, making it possible to develop both internal management tools and a future member-facing experience within the same project.
+Full-stack gym administration platform: **React admin dashboard**, **Express + PostgreSQL API**, and a **member PWA** starter.
 
-## Project Overview
+Authentication is **Google-only**. Admin access is restricted to an allowlisted set of Gmail addresses (multiple admins supported).
 
-The project is organized into two main applications:
+## Documentation
 
-- **Admin Dashboard** — a React-based management interface for gym administrators and staff.
-- **PWA** — a lightweight React and Vite application prepared for a progressive web experience.
+| Doc | Description |
+|---|---|
+| **[docs/README.md](./docs/README.md)** | Documentation hub |
+| **[docs/SETUP.md](./docs/SETUP.md)** | Quick start (all platforms) |
+| **[docs/setup/linux.md](./docs/setup/linux.md)** | Detailed Linux install |
+| **[docs/setup/windows.md](./docs/setup/windows.md)** | Detailed Windows install |
+| **[docs/google-oauth.md](./docs/google-oauth.md)** | Google Client ID + admin allowlist |
+| **[docs/environment.md](./docs/environment.md)** | Environment variable reference |
+| **[docs/troubleshooting.md](./docs/troubleshooting.md)** | Common errors |
 
-The admin dashboard uses a responsive layout, reusable components, data tables, charts, profile management screens, authentication views, configurable navigation, and a theme system. It is structured to support the gradual implementation of gym-specific workflows such as member management, memberships, attendance, payments, classes, trainers, scheduling, announcements, and reports.
+Package docs:
 
-## Admin Dashboard
+- [`nodejs-server/README.md`](./nodejs-server/README.md) — API, migrations, auth, payments
+- [`admin/README.md`](./admin/README.md) — Admin dashboard
 
-The administrative application is located in the `admin` directory. It is built with React and uses Chakra UI as its primary component and styling framework. React Router provides navigation between authentication pages and the administrative area, while ApexCharts and React Table support data visualization and tabular reporting.
+## Apps
 
-The application includes:
+| App | Folder | Dev URL |
+|---|---|---|
+| API | `nodejs-server/` | http://localhost:4000 |
+| Admin dashboard | `admin/` | http://localhost:3000 |
+| Member PWA | `pwa/` | http://localhost:5173 |
 
-- A main administrative dashboard.
-- A responsive sidebar and navigation system.
-- Authentication and sign-in screens.
-- Member management navigation.
-- Membership management navigation.
-- Attendance navigation.
-- Payment management navigation.
-- Content feed and announcement navigation.
-- Class and trainer navigation.
-- Schedule navigation.
-- Reports and data table views.
-- User profile management.
-- Settings navigation.
-- Reusable cards, fields, charts, calendars, tables, menus, footers, scrollbars, and layout components.
-- Light and dark theme support through Chakra UI theming.
-- Right-to-left layout support.
-- Responsive dashboard layouts for different screen sizes.
+## Features (admin)
 
-Several navigation sections are currently represented by coming-soon screens. These sections establish the planned information architecture for the gym management platform and provide clear extension points for implementing full business functionality in future development.
+- Dashboard KPIs and membership breakdowns
+- Members, membership plans & assignments
+- Attendance check-in / check-out
+- Payments with **screenshot proof → approve / decline**
+- Content feed & announcements
+- Classes, trainers, schedule (+ bookings)
+- Reports, settings, profile, notifications, global search
 
-## PWA Application
+## Stack
 
-The `pwa` directory contains a separate React application powered by Vite. It currently serves as an initialized starting point for a progressive web application that can later be expanded into a member or staff-facing interface.
+- **Admin:** React 19, Chakra UI, React Router, `@react-oauth/google`
+- **API:** Node.js, Express, PostgreSQL, `node-pg-migrate`, Google ID token verify, JWT
+- **PWA:** React + Vite (starter)
 
-The PWA currently includes:
+## Quick start
 
-- A Vite development setup.
-- React and React DOM integration.
-- A basic application shell.
-- Responsive foundational styling.
-- A dark visual theme with a radial background.
-- A structure suitable for adding offline support, installability, mobile-first screens, member features, notifications, and other progressive web capabilities.
-
-## Planned Functional Areas
-
-The project navigation and dashboard structure are organized around the core operational areas of a gym management system:
-
-### Member Management
-
-The member area is intended to support the organization of gym member records, profiles, contact information, membership status, and related activity.
-
-### Memberships
-
-The membership area is intended to support membership plans, subscription periods, active and expired memberships, renewals, and membership-related administration.
-
-### Attendance
-
-The attendance area is intended to provide a way to record and review member visits, monitor attendance activity, and support gym usage reporting.
-
-### Payments
-
-The payments area is intended to support payment records, transaction tracking, membership payments, financial status, and payment-related reporting.
-
-### Classes and Trainers
-
-The classes and trainers areas are intended to support gym programs, class organization, trainer information, and the relationship between scheduled activities and staff members.
-
-### Scheduling
-
-The schedule area is intended to provide a centralized view of classes, appointments, training sessions, and other gym activities.
-
-### Content and Announcements
-
-The content feed and announcements areas are intended to provide communication tools for publishing updates, notices, promotions, and other information for gym members or staff.
-
-### Reports
-
-The reports area provides data table views and is intended to serve as the foundation for operational and management reporting.
-
-## Technology Stack
-
-### Admin Dashboard
-
-- React 19
-- React Router DOM
-- Chakra UI
-- Emotion
-- React Icons
-- ApexCharts
-- React ApexCharts
-- TanStack React Table
-- React Calendar
-- React Dropzone
-- Framer Motion
-- Create React App and React Scripts
-- JavaScript and CSS
-
-### PWA
-
-- React 19
-- React DOM
-- Vite
-- Vite React plugin
-- JavaScript and CSS
-
-## Repository Structure
-
-```text
-Hope-Gym-Management/
-├── admin/
-│   ├── public/              # Static files and application metadata
-│   ├── src/
-│   │   ├── assets/          # Styles, images, and visual resources
-│   │   ├── components/      # Reusable UI components
-│   │   ├── contexts/        # Shared React contexts
-│   │   ├── layouts/         # Authentication, admin, and RTL layouts
-│   │   ├── theme/           # Chakra UI theme configuration
-│   │   ├── variables/       # Chart and interface data definitions
-│   │   ├── views/           # Dashboard, profile, reports, and auth screens
-│   │   ├── App.js           # Main application routing and provider setup
-│   │   ├── index.js         # Application entry point
-│   │   └── routes.js        # Navigation and route definitions
-│   ├── package.json         # Admin application dependencies and scripts
-│   └── README.md            # Admin application documentation
-├── pwa/
-│   ├── src/                 # PWA source files
-│   ├── design.jpg           # PWA design reference
-│   ├── index.html           # PWA HTML entry point
-│   ├── package.json         # PWA dependencies and scripts
-│   └── vite.config.js       # Vite configuration
-└── README.md                # Project documentation
-```
-
-## Getting Started
+> Prefer OS-specific steps? Use **[Linux](./docs/setup/linux.md)** or **[Windows](./docs/setup/windows.md)**.
 
 ### Prerequisites
 
-Install the following before running the applications:
+- Node.js 20+ and npm
+- PostgreSQL 14+
+- Google OAuth Web Client ID ([guide](./docs/google-oauth.md))
 
-- Node.js LTS
-- npm
-- Git
+### 1. API
 
-### Running the Admin Dashboard
+```bash
+cd nodejs-server
+cp .env.example .env
+# configure DB, JWT_SECRET, GOOGLE_CLIENT_IDS, ADMIN_GOOGLE_EMAILS
+npm install
+npm run migrate
+npm run seed
+npm run dev
+```
 
-From the repository root, move into the admin application:
+### 2. Admin
 
 ```bash
 cd admin
+cp .env.example .env
+# REACT_APP_API_URL + REACT_APP_GOOGLE_CLIENT_ID
 npm install
 npm start
 ```
 
-The development server will start using the Create React App development environment.
+Sign in at http://localhost:3000/auth/sign-in with an allowlisted Gmail.
 
-To create a production build:
+## Repository structure
 
-```bash
-cd admin
-npm run build
+```text
+Hope-Gym-Management/
+├── admin/                 # React admin dashboard
+├── nodejs-server/         # Express API + PostgreSQL migrations
+├── pwa/                   # Member PWA starter
+├── docs/                  # Setup & operations documentation
+│   ├── SETUP.md
+│   ├── setup/linux.md
+│   ├── setup/windows.md
+│   ├── google-oauth.md
+│   ├── environment.md
+│   └── troubleshooting.md
+└── README.md
 ```
 
-To run the test command:
+## Admin allowlist (multiple admins)
 
-```bash
-cd admin
-npm test
+```env
+ADMIN_GOOGLE_EMAILS=owner@gmail.com,manager@gmail.com
 ```
 
-### Running the PWA
+Only those Google accounts can use admin sign-in. Any other account is rejected.
 
-From the repository root, move into the PWA application:
+See [docs/google-oauth.md](./docs/google-oauth.md).
 
-```bash
-cd pwa
-npm install
-npm run dev
-```
+## License
 
-To create a production build:
-
-```bash
-cd pwa
-npm run build
-```
-
-To preview the production build locally:
-
-```bash
-cd pwa
-npm run preview
-```
-
-## Development Approach
-
-The project follows a modular React architecture. Shared interface elements are separated into reusable components, page-level screens are grouped under views, and application-wide visual behavior is managed through theme and layout modules. This structure makes it easier to extend individual gym management features without placing all functionality inside a single component.
-
-The admin application uses route-based organization so each major business area can receive its own page, data model, validation rules, and user interactions as development progresses. The existing dashboard, reports, profile, authentication, and layout foundations can be extended with API integration and persistent storage when the backend services are introduced.
-
-## Current Project Status
-
-Hope Gym Management currently provides the frontend foundation for a gym management platform. The admin dashboard includes the core visual structure, navigation, layouts, reusable UI elements, dashboard widgets, reports, profile screens, and authentication views. The PWA is initialized as a separate application shell.
-
-The main gym-specific workflows, including persistent member records, live attendance tracking, payment processing, membership operations, class scheduling, trainer management, announcements, and backend connectivity, are prepared as future implementation areas. At the current stage, some sections are represented by coming-soon pages and sample dashboard data rather than complete production workflows.
-
-## Future Enhancements
-
-Potential future improvements include:
-
-- Backend API integration.
-- Database-backed member and staff records.
-- Secure authentication and role-based authorization.
-- Complete member and membership management workflows.
-- Attendance check-in and visit history.
-- Payment processing and financial reports.
-- Class scheduling and trainer assignments.
-- Member notifications and announcement delivery.
-- Advanced analytics and customizable reports.
-- PWA installation and offline functionality.
-- Push notifications.
-- Automated testing and continuous integration.
-- Deployment configuration for production environments.
+See [LICENSE](./LICENSE).

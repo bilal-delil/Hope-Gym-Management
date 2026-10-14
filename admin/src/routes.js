@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { Icon } from '@chakra-ui/react';
 import {
   MdHome,
@@ -11,23 +10,27 @@ import {
   MdFitnessCenter,
   MdCalendarMonth,
   MdPerson,
-  MdLock,
   MdBarChart,
   MdSettings,
   MdSportsGymnastics,
 } from 'react-icons/md';
 
-// Admin Imports
 import MainDashboard from 'views/admin/default';
+import MembersPage from 'views/admin/members';
+import MembershipsPage from 'views/admin/memberships';
+import AttendancePage from 'views/admin/attendance';
+import PaymentsPage from 'views/admin/payments';
+import ContentFeedPage from 'views/admin/contentFeed';
+import AnnouncementsPage from 'views/admin/announcements';
+import ClassesPage from 'views/admin/classes';
+import TrainersPage from 'views/admin/trainers';
+import SchedulePage from 'views/admin/schedule';
+import ReportsPage from 'views/admin/reports';
 import Profile from 'views/admin/profile';
-import DataTables from 'views/admin/dataTables';
-import ComingSoon from 'views/admin/comingSoon';
-
-// Auth Imports
+import SettingsPage from 'views/admin/settings';
 import SignInCentered from 'views/auth/signIn';
 
 const routes = [
-  // ── MAIN ──────────────────────────────────────────────
   {
     name: 'Dashboard',
     layout: '/admin',
@@ -35,17 +38,13 @@ const routes = [
     icon: <Icon as={MdHome} width='20px' height='20px' color='inherit' />,
     component: <MainDashboard />,
   },
-
-  // ── MEMBERS ───────────────────────────────────────────
   {
     name: 'Members',
     layout: '/admin',
     path: '/members',
     icon: <Icon as={MdPeople} width='20px' height='20px' color='inherit' />,
-    component: <ComingSoon pageName='Members' />,
+    component: <MembersPage />,
   },
-
-  // ── MEMBERSHIPS ───────────────────────────────────────
   {
     name: 'Memberships',
     layout: '/admin',
@@ -53,10 +52,8 @@ const routes = [
     icon: (
       <Icon as={MdCardMembership} width='20px' height='20px' color='inherit' />
     ),
-    component: <ComingSoon pageName='Memberships' />,
+    component: <MembershipsPage />,
   },
-
-  // ── ATTENDANCE ────────────────────────────────────────
   {
     name: 'Attendance',
     layout: '/admin',
@@ -64,35 +61,29 @@ const routes = [
     icon: (
       <Icon as={MdCheckCircle} width='20px' height='20px' color='inherit' />
     ),
-    component: <ComingSoon pageName='Attendance' />,
+    component: <AttendancePage />,
   },
-
-  // ── PAYMENTS ──────────────────────────────────────────
   {
     name: 'Payments',
     layout: '/admin',
     path: '/payments',
     icon: <Icon as={MdPayment} width='20px' height='20px' color='inherit' />,
-    component: <ComingSoon pageName='Payments' />,
+    component: <PaymentsPage />,
   },
-
-  // ── CONTENT & ANNOUNCEMENTS ───────────────────────────
   {
     name: 'Content Feed',
     layout: '/admin',
     path: '/content-feed',
     icon: <Icon as={MdCampaign} width='20px' height='20px' color='inherit' />,
-    component: <ComingSoon pageName='Content Feed' />,
+    component: <ContentFeedPage />,
   },
   {
     name: 'Announcements',
     layout: '/admin',
     path: '/announcements',
     icon: <Icon as={MdCampaign} width='20px' height='20px' color='inherit' />,
-    component: <ComingSoon pageName='Announcements' />,
+    component: <AnnouncementsPage />,
   },
-
-  // ── CLASSES & TRAINERS ────────────────────────────────
   {
     name: 'Classes',
     layout: '/admin',
@@ -100,7 +91,7 @@ const routes = [
     icon: (
       <Icon as={MdFitnessCenter} width='20px' height='20px' color='inherit' />
     ),
-    component: <ComingSoon pageName='Classes' />,
+    component: <ClassesPage />,
   },
   {
     name: 'Trainers',
@@ -114,10 +105,8 @@ const routes = [
         color='inherit'
       />
     ),
-    component: <ComingSoon pageName='Trainers' />,
+    component: <TrainersPage />,
   },
-
-  // ── SCHEDULE ──────────────────────────────────────────
   {
     name: 'Schedule',
     layout: '/admin',
@@ -125,19 +114,15 @@ const routes = [
     icon: (
       <Icon as={MdCalendarMonth} width='20px' height='20px' color='inherit' />
     ),
-    component: <ComingSoon pageName='Schedule' />,
+    component: <SchedulePage />,
   },
-
-  // ── REPORTS ───────────────────────────────────────────
   {
     name: 'Reports',
     layout: '/admin',
     path: '/reports',
     icon: <Icon as={MdBarChart} width='20px' height='20px' color='inherit' />,
-    component: <DataTables />,
+    component: <ReportsPage />,
   },
-
-  // ── ACCOUNT ───────────────────────────────────────────
   {
     name: 'Profile',
     layout: '/admin',
@@ -150,15 +135,13 @@ const routes = [
     layout: '/admin',
     path: '/settings',
     icon: <Icon as={MdSettings} width='20px' height='20px' color='inherit' />,
-    component: <ComingSoon pageName='Settings' />,
+    component: <SettingsPage />,
   },
-
-  // ── AUTH ──────────────────────────────────────────────
   {
     name: 'Sign In',
     layout: '/auth',
     path: '/sign-in',
-    icon: <Icon as={MdLock} width='20px' height='20px' color='inherit' />,
+    hideInSidebar: true,
     component: <SignInCentered />,
   },
 ];
