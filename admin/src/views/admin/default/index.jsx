@@ -205,10 +205,13 @@ export default function DashboardPage() {
           {
             key: 'status',
             label: 'Status',
-            render: () => <StatusBadge value='active' />,
+            render: (row) => (
+              <StatusBadge value={row.is_active === false ? 'inactive' : 'active'} />
+            ),
           },
         ]}
       />
     </Box>
   );
 }
+

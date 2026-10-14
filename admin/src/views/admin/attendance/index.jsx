@@ -16,16 +16,33 @@ import {
 } from '@chakra-ui/react';
 import PageShell from 'components/admin/PageShell';
 import DataTableCard from 'components/admin/DataTableCard';
+import ConfirmDeleteDialog from 'components/admin/ConfirmDeleteDialog';
+import RecordViewModal from 'components/admin/RecordViewModal';
 import useApiList from 'hooks/useApiList';
+import useConfirmDelete from 'hooks/useConfirmDelete';
 import api from 'lib/api';
 
 export default function AttendancePage() {
   const { rows, loading, error, reload } = useApiList('/attendance?limit=100');
   const members = useApiList('/members?limit=100');
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const viewModal = useDisclosure();
   const [memberId, setMemberId] = useState('');
+  const [viewing, setViewing] = useState(null);
   const [saving, setSaving] = useState(false);
   const toast = useToast();
+
+  const deleteCtrl = useConfirmDelete({
+    title: 'Delete attendance',
+    getMessage: (row) =>
+      `Delete attendance for ${row.first_name} ${row.last_name} on ${new Date(
+        row.checked_in_at
+      ).toLocaleString()}?`,
+    onDelete: async (row) => {
+      await api.delete(`/attendance/${row.id}`);
+      reload();
+    },
+  });
 
   const checkIn = async () => {
     setSaving(true);
@@ -51,16 +68,23 @@ export default function AttendancePage() {
     }
   };
 
+  const openView = (row) => {
+    setViewing(row);
+    viewModal.onOpen();
+  };
+
   return (
     <PageShell
       title='Attendance'
-      subtitle='Member check-ins and visit history'
+      subtitle='Check-ins from front desk and member PWA (source column)'
       actionLabel='Check in'
       onAction={onOpen}
       loading={loading}
       error={error}>
       <DataTableCard
         rows={rows}
+        onView={openView}
+        onDelete={deleteCtrl.requestDelete}
         columns={[
           {
             key: 'member',
@@ -90,6 +114,44 @@ export default function AttendancePage() {
             </Button>
           ) : null
         }
+      />
+
+      <RecordViewModal
+        isOpen={viewModal.isOpen}
+        onClose={viewModal.onClose}
+        title='Attendance details'
+        fields={
+          viewing
+            ? [
+                {
+                  label: 'Member',
+                  value: `${viewing.first_name} ${viewing.last_name}`,
+                },
+                { label: 'Code', value: viewing.member_code },
+                {
+                  label: 'Checked in',
+                  value: viewing.checked_in_at,
+                  type: 'datetime',
+                },
+                {
+                  label: 'Checked out',
+                  value: viewing.checked_out_at,
+                  type: 'datetime',
+                },
+                { label: 'Source', value: viewing.source },
+                { label: 'Notes', value: viewing.notes, fullWidth: true },
+              ]
+            : []
+        }
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={deleteCtrl.isOpen}
+        onClose={deleteCtrl.onClose}
+        onConfirm={deleteCtrl.confirmDelete}
+        title={deleteCtrl.title}
+        message={deleteCtrl.message}
+        isLoading={deleteCtrl.loading}
       />
 
       <Modal isOpen={isOpen} onClose={onClose}>

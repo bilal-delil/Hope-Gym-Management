@@ -12,32 +12,76 @@ import {
   ModalHeader,
   ModalOverlay,
   Select,
+  Switch,
   Textarea,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react';
 import PageShell from 'components/admin/PageShell';
 import DataTableCard, { StatusBadge } from 'components/admin/DataTableCard';
+import ConfirmDeleteDialog from 'components/admin/ConfirmDeleteDialog';
+import RecordViewModal from 'components/admin/RecordViewModal';
 import useApiList from 'hooks/useApiList';
+import useConfirmDelete from 'hooks/useConfirmDelete';
 import api from 'lib/api';
+
+const emptyForm = {
+  title: '',
+  body: '',
+  priority: 'normal',
+  isPinned: false,
+};
 
 export default function AnnouncementsPage() {
   const { rows, loading, error, reload } = useApiList('/announcements?limit=100');
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const viewModal = useDisclosure();
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    title: '',
-    body: '',
-    priority: 'normal',
-    isPinned: false,
-  });
+  const [editing, setEditing] = useState(null);
+  const [viewing, setViewing] = useState(null);
+  const [form, setForm] = useState(emptyForm);
   const toast = useToast();
+
+  const deleteCtrl = useConfirmDelete({
+    title: 'Delete announcement',
+    getMessage: (row) => `Delete announcement "${row.title}"?`,
+    onDelete: async (row) => {
+      await api.delete(`/announcements/${row.id}`);
+      reload();
+    },
+  });
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    onOpen();
+  };
+
+  const openEdit = (row) => {
+    setEditing(row);
+    setForm({
+      title: row.title || '',
+      body: row.body || '',
+      priority: row.priority || 'normal',
+      isPinned: Boolean(row.is_pinned),
+    });
+    onOpen();
+  };
+
+  const openView = (row) => {
+    setViewing(row);
+    viewModal.onOpen();
+  };
 
   const save = async () => {
     setSaving(true);
     try {
-      await api.post('/announcements', form);
-      toast({ title: 'Announcement created', status: 'success', duration: 2000 });
+      if (editing) {
+        await api.put(`/announcements/${editing.id}`, form);
+      } else {
+        await api.post('/announcements', form);
+      }
+      toast({ title: 'Announcement saved', status: 'success', duration: 2000 });
       onClose();
       reload();
     } catch (err) {
@@ -47,27 +91,19 @@ export default function AnnouncementsPage() {
     }
   };
 
-  const remove = async (row) => {
-    if (!window.confirm('Delete this announcement?')) return;
-    try {
-      await api.delete(`/announcements/${row.id}`);
-      reload();
-    } catch (err) {
-      toast({ title: err.message, status: 'error', duration: 3000 });
-    }
-  };
-
   return (
     <PageShell
       title='Announcements'
       subtitle='Broadcast notices to members'
       actionLabel='New announcement'
-      onAction={onOpen}
+      onAction={openCreate}
       loading={loading}
       error={error}>
       <DataTableCard
         rows={rows}
-        onDelete={remove}
+        onView={openView}
+        onEdit={openEdit}
+        onDelete={deleteCtrl.requestDelete}
         columns={[
           { key: 'title', label: 'Title' },
           {
@@ -88,10 +124,43 @@ export default function AnnouncementsPage() {
         ]}
       />
 
+      <RecordViewModal
+        isOpen={viewModal.isOpen}
+        onClose={viewModal.onClose}
+        title='Announcement details'
+        fields={
+          viewing
+            ? [
+                { label: 'Title', value: viewing.title },
+                { label: 'Priority', value: viewing.priority, type: 'status' },
+                { label: 'Pinned', value: viewing.is_pinned, type: 'bool' },
+                {
+                  label: 'Starts',
+                  value: viewing.starts_at,
+                  type: 'datetime',
+                },
+                { label: 'Ends', value: viewing.ends_at, type: 'datetime' },
+                { label: 'Body', value: viewing.body, fullWidth: true },
+              ]
+            : []
+        }
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={deleteCtrl.isOpen}
+        onClose={deleteCtrl.onClose}
+        onConfirm={deleteCtrl.confirmDelete}
+        title={deleteCtrl.title}
+        message={deleteCtrl.message}
+        isLoading={deleteCtrl.loading}
+      />
+
       <Modal isOpen={isOpen} onClose={onClose} size='xl'>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>New announcement</ModalHeader>
+          <ModalHeader>
+            {editing ? 'Edit announcement' : 'New announcement'}
+          </ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <FormControl mb='12px'>
@@ -109,7 +178,7 @@ export default function AnnouncementsPage() {
                 onChange={(e) => setForm((p) => ({ ...p, body: e.target.value }))}
               />
             </FormControl>
-            <FormControl>
+            <FormControl mb='12px'>
               <FormLabel>Priority</FormLabel>
               <Select
                 value={form.priority}
@@ -121,6 +190,15 @@ export default function AnnouncementsPage() {
                 <option value='high'>high</option>
                 <option value='urgent'>urgent</option>
               </Select>
+            </FormControl>
+            <FormControl display='flex' alignItems='center'>
+              <FormLabel mb='0'>Pinned</FormLabel>
+              <Switch
+                isChecked={form.isPinned}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, isPinned: e.target.checked }))
+                }
+              />
             </FormControl>
           </ModalBody>
           <ModalFooter gap='8px'>

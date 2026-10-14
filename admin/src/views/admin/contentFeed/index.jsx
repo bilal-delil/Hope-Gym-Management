@@ -18,26 +18,69 @@ import {
 } from '@chakra-ui/react';
 import PageShell from 'components/admin/PageShell';
 import DataTableCard, { StatusBadge } from 'components/admin/DataTableCard';
+import ConfirmDeleteDialog from 'components/admin/ConfirmDeleteDialog';
+import RecordViewModal from 'components/admin/RecordViewModal';
 import useApiList from 'hooks/useApiList';
+import useConfirmDelete from 'hooks/useConfirmDelete';
 import api from 'lib/api';
+
+const emptyForm = {
+  title: '',
+  body: '',
+  excerpt: '',
+  status: 'published',
+};
 
 export default function ContentFeedPage() {
   const { rows, loading, error, reload } = useApiList('/content?limit=100');
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const viewModal = useDisclosure();
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    title: '',
-    body: '',
-    excerpt: '',
-    status: 'published',
-  });
+  const [editing, setEditing] = useState(null);
+  const [viewing, setViewing] = useState(null);
+  const [form, setForm] = useState(emptyForm);
   const toast = useToast();
+
+  const deleteCtrl = useConfirmDelete({
+    title: 'Delete post',
+    getMessage: (row) => `Delete content post "${row.title}"?`,
+    onDelete: async (row) => {
+      await api.delete(`/content/${row.id}`);
+      reload();
+    },
+  });
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm(emptyForm);
+    onOpen();
+  };
+
+  const openEdit = (row) => {
+    setEditing(row);
+    setForm({
+      title: row.title || '',
+      body: row.body || '',
+      excerpt: row.excerpt || '',
+      status: row.status || 'published',
+    });
+    onOpen();
+  };
+
+  const openView = (row) => {
+    setViewing(row);
+    viewModal.onOpen();
+  };
 
   const save = async () => {
     setSaving(true);
     try {
-      await api.post('/content', form);
-      toast({ title: 'Post created', status: 'success', duration: 2000 });
+      if (editing) {
+        await api.put(`/content/${editing.id}`, form);
+      } else {
+        await api.post('/content', form);
+      }
+      toast({ title: 'Post saved', status: 'success', duration: 2000 });
       onClose();
       reload();
     } catch (err) {
@@ -47,27 +90,19 @@ export default function ContentFeedPage() {
     }
   };
 
-  const remove = async (row) => {
-    if (!window.confirm('Delete this post?')) return;
-    try {
-      await api.delete(`/content/${row.id}`);
-      reload();
-    } catch (err) {
-      toast({ title: err.message, status: 'error', duration: 3000 });
-    }
-  };
-
   return (
     <PageShell
       title='Content Feed'
       subtitle='Publish tips, news, and gym updates'
       actionLabel='New post'
-      onAction={onOpen}
+      onAction={openCreate}
       loading={loading}
       error={error}>
       <DataTableCard
         rows={rows}
-        onDelete={remove}
+        onView={openView}
+        onEdit={openEdit}
+        onDelete={deleteCtrl.requestDelete}
         columns={[
           { key: 'title', label: 'Title' },
           {
@@ -87,10 +122,41 @@ export default function ContentFeedPage() {
         ]}
       />
 
+      <RecordViewModal
+        isOpen={viewModal.isOpen}
+        onClose={viewModal.onClose}
+        title='Content details'
+        fields={
+          viewing
+            ? [
+                { label: 'Title', value: viewing.title },
+                { label: 'Status', value: viewing.status, type: 'status' },
+                { label: 'Author', value: viewing.author_name },
+                {
+                  label: 'Published',
+                  value: viewing.published_at,
+                  type: 'datetime',
+                },
+                { label: 'Excerpt', value: viewing.excerpt, fullWidth: true },
+                { label: 'Body', value: viewing.body, fullWidth: true },
+              ]
+            : []
+        }
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={deleteCtrl.isOpen}
+        onClose={deleteCtrl.onClose}
+        onConfirm={deleteCtrl.confirmDelete}
+        title={deleteCtrl.title}
+        message={deleteCtrl.message}
+        isLoading={deleteCtrl.loading}
+      />
+
       <Modal isOpen={isOpen} onClose={onClose} size='xl'>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>New content post</ModalHeader>
+          <ModalHeader>{editing ? 'Edit post' : 'New content post'}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <FormControl mb='12px'>
