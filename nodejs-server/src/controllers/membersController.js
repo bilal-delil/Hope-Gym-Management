@@ -10,6 +10,12 @@ const createValidators = [
   body('lastName').isString().isLength({ min: 1, max: 100 }),
   body('email').optional({ nullable: true }).isEmail().normalizeEmail(),
   body('phone').optional({ nullable: true }).isString().isLength({ max: 50 }),
+  body('dateOfBirth').optional({ nullable: true }).isISO8601(),
+  body('gender').optional({ nullable: true }).isString().isLength({ max: 20 }),
+  body('address').optional({ nullable: true }).isString(),
+  body('emergencyContactName').optional({ nullable: true }).isString().isLength({ max: 150 }),
+  body('emergencyContactPhone').optional({ nullable: true }).isString().isLength({ max: 50 }),
+  body('notes').optional({ nullable: true }).isString(),
   body('status').optional().isIn(['active', 'inactive', 'suspended']),
 ];
 
@@ -19,6 +25,12 @@ const updateValidators = [
   body('lastName').optional().isString().isLength({ min: 1, max: 100 }),
   body('email').optional({ nullable: true }).isEmail().normalizeEmail(),
   body('phone').optional({ nullable: true }).isString().isLength({ max: 50 }),
+  body('dateOfBirth').optional({ nullable: true }).isISO8601(),
+  body('gender').optional({ nullable: true }).isString().isLength({ max: 20 }),
+  body('address').optional({ nullable: true }).isString(),
+  body('emergencyContactName').optional({ nullable: true }).isString().isLength({ max: 150 }),
+  body('emergencyContactPhone').optional({ nullable: true }).isString().isLength({ max: 50 }),
+  body('notes').optional({ nullable: true }).isString(),
   body('status').optional().isIn(['active', 'inactive', 'suspended']),
 ];
 

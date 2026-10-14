@@ -18,6 +18,7 @@ const updateValidators = [
   body('status')
     .optional()
     .isIn(['active', 'expired', 'cancelled', 'pending']),
+  body('planId').optional().isUUID(),
   body('startDate').optional().isISO8601(),
   body('endDate').optional().isISO8601(),
   body('autoRenew').optional().isBoolean(),

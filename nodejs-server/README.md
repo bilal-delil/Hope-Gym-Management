@@ -156,7 +156,16 @@ Payments are **screenshot-based**, not gateway-based.
 2. Queue: `GET /api/payments/pending`
 3. `POST /api/payments/:id/approve` or `POST /api/payments/:id/decline` with `{ "rejectionReason": "..." }`
 
-Proof files are served from `/uploads/payments/...`.
+### Payment proof image storage
+
+Uploads are **local disk**, not cloud storage:
+
+1. Multer saves the file to `nodejs-server/uploads/payments/payment-<timestamp>-<id>.<ext>`
+2. DB stores `proof_image_path` (relative) and `proof_image_url` (absolute)
+3. Express serves the folder at `GET /uploads/payments/...` (see `app.js`)
+4. Admin **View** opens the proof image from that URL; deleting a payment also removes the file
+
+Keep `uploads/` on the API host (backed up with the DB). Max size **5MB**, images only.
 
 Members can also submit via `POST /api/member/payments`.
 

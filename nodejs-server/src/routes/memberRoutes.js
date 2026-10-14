@@ -10,6 +10,12 @@ const router = express.Router();
 router.use(memberOnly);
 
 router.get('/me', memberAppController.me);
+router.put(
+  '/me',
+  memberAppController.updateProfileValidators,
+  validate,
+  memberAppController.updateMe
+);
 router.get('/overview', memberAppController.overview);
 router.get('/plans', memberAppController.listPlans);
 
@@ -22,6 +28,7 @@ router.post('/attendance/check-in', memberAppController.checkIn);
 router.post('/attendance/check-out', memberAppController.checkOut);
 
 router.get('/announcements', memberAppController.listAnnouncements);
+router.get('/trainers', memberAppController.listTrainers);
 router.get('/content', memberAppController.listContent);
 router.get('/content/:id', memberAppController.getContent);
 

@@ -4,11 +4,30 @@ const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { getPagination, paginatedResponse } = require('../utils/pagination');
 const { publicUser } = require('../utils/tokens');
+const { notifyAdmins } = require('../utils/notifyAdmins');
+
+const updateProfileValidators = [
+  body('firstName').optional().isString().isLength({ min: 1, max: 100 }),
+  body('lastName').optional().isString().isLength({ min: 1, max: 100 }),
+  body('phone').optional({ nullable: true }).isString().isLength({ max: 50 }),
+  body('dateOfBirth').optional({ nullable: true }).isISO8601(),
+  body('gender').optional({ nullable: true }).isString().isLength({ max: 20 }),
+  body('address').optional({ nullable: true }).isString(),
+  body('emergencyContactName')
+    .optional({ nullable: true })
+    .isString()
+    .isLength({ max: 150 }),
+  body('emergencyContactPhone')
+    .optional({ nullable: true })
+    .isString()
+    .isLength({ max: 50 }),
+];
 
 async function requireMember(userId) {
   const result = await query(
     `SELECT id, user_id, member_code, first_name, last_name, email, phone,
-            photo_url, status, joined_at
+            photo_url, status, joined_at, date_of_birth, gender, address,
+            emergency_contact_name, emergency_contact_phone, notes
      FROM members
      WHERE user_id = $1`,
     [userId]
@@ -42,34 +61,106 @@ const me = asyncHandler(async (req, res) => {
   });
 });
 
+const updateMe = asyncHandler(async (req, res) => {
+  const member = await requireMember(req.user.id);
+
+  const fields = {
+    first_name: req.body.firstName,
+    last_name: req.body.lastName,
+    phone: req.body.phone,
+    date_of_birth: req.body.dateOfBirth,
+    gender: req.body.gender,
+    address: req.body.address,
+    emergency_contact_name: req.body.emergencyContactName,
+    emergency_contact_phone: req.body.emergencyContactPhone,
+  };
+
+  const sets = [];
+  const values = [];
+  Object.entries(fields).forEach(([column, value]) => {
+    if (value !== undefined) {
+      values.push(value === '' ? null : value);
+      sets.push(`${column} = $${values.length}`);
+    }
+  });
+
+  if (!sets.length) {
+    throw new ApiError(400, 'No fields provided to update');
+  }
+
+  values.push(member.id);
+  const result = await query(
+    `UPDATE members
+     SET ${sets.join(', ')}, updated_at = CURRENT_TIMESTAMP
+     WHERE id = $${values.length}
+     RETURNING *`,
+    values
+  );
+
+  const updated = result.rows[0];
+
+  await notifyAdmins({
+    title: 'Member profile updated (PWA)',
+    body: `${updated.first_name} ${updated.last_name} (${updated.member_code}) updated their details.`,
+    type: 'member',
+    meta: { memberId: updated.id, source: 'pwa' },
+  });
+
+  const membership = await query(
+    `SELECT ms.*, mp.name AS plan_name, mp.billing_period, mp.price, mp.duration_days
+     FROM memberships ms
+     JOIN membership_plans mp ON mp.id = ms.plan_id
+     WHERE ms.member_id = $1
+     ORDER BY ms.end_date DESC
+     LIMIT 1`,
+    [updated.id]
+  );
+
+  res.json({
+    success: true,
+    data: {
+      user: publicUser(req.user, updated),
+      member: updated,
+      membership: membership.rows[0] || null,
+    },
+  });
+});
+
 const overview = asyncHandler(async (req, res) => {
   const member = await requireMember(req.user.id);
 
-  const [membership, checkins, pendingPayments, upcoming, announcements] =
-    await Promise.all([
-      query(
-        `SELECT ms.status, ms.start_date, ms.end_date, mp.name AS plan_name, mp.price
+  const [
+    membership,
+    checkins,
+    pendingPayments,
+    upcoming,
+    announcements,
+    trainers,
+    unread,
+  ] = await Promise.all([
+    query(
+      `SELECT ms.status, ms.start_date, ms.end_date, mp.name AS plan_name, mp.price
          FROM memberships ms
          JOIN membership_plans mp ON mp.id = ms.plan_id
          WHERE ms.member_id = $1
          ORDER BY ms.end_date DESC
          LIMIT 1`,
-        [member.id]
-      ),
-      query(
-        `SELECT COUNT(*)::int AS total
+      [member.id]
+    ),
+    query(
+      `SELECT COUNT(*)::int AS total
          FROM attendance
          WHERE member_id = $1 AND checked_in_at >= date_trunc('month', CURRENT_DATE)`,
-        [member.id]
-      ),
-      query(
-        `SELECT COUNT(*)::int AS total
+      [member.id]
+    ),
+    query(
+      `SELECT COUNT(*)::int AS total
          FROM payments
          WHERE member_id = $1 AND status = 'pending'`,
-        [member.id]
-      ),
-      query(
-        `SELECT s.id, s.starts_at, s.ends_at, s.room, s.status,
+      [member.id]
+    ),
+    query(
+      `SELECT s.id, s.starts_at, s.ends_at, s.room, s.status,
                 c.name AS class_name, c.duration_minutes,
                 t.first_name AS trainer_first_name, t.last_name AS trainer_last_name,
                 EXISTS (
@@ -84,17 +175,30 @@ const overview = asyncHandler(async (req, res) => {
          WHERE s.status = 'scheduled' AND s.starts_at >= CURRENT_TIMESTAMP
          ORDER BY s.starts_at ASC
          LIMIT 5`,
-        [member.id]
-      ),
-      query(
-        `SELECT id, title, body, priority, starts_at, is_pinned
+      [member.id]
+    ),
+    query(
+      `SELECT id, title, body, priority, starts_at, is_pinned
          FROM announcements
          WHERE starts_at <= CURRENT_TIMESTAMP
            AND (ends_at IS NULL OR ends_at >= CURRENT_TIMESTAMP)
          ORDER BY is_pinned DESC, starts_at DESC
          LIMIT 5`
-      ),
-    ]);
+    ),
+    query(
+      `SELECT id, first_name, last_name, specialties, bio, photo_url
+         FROM trainers
+         WHERE status = 'active'
+         ORDER BY first_name ASC, last_name ASC
+         LIMIT 12`
+    ),
+    query(
+      `SELECT COUNT(*)::int AS total
+         FROM notifications
+         WHERE user_id = $1 AND is_read = false`,
+      [req.user.id]
+    ),
+  ]);
 
   res.json({
     success: true,
@@ -103,8 +207,10 @@ const overview = asyncHandler(async (req, res) => {
       membership: membership.rows[0] || null,
       monthlyCheckins: checkins.rows[0].total,
       pendingPayments: pendingPayments.rows[0].total,
+      unreadNotifications: unread.rows[0].total,
       upcomingClasses: upcoming.rows,
       announcements: announcements.rows,
+      trainers: trainers.rows,
     },
   });
 });
@@ -219,6 +325,28 @@ const bookSchedule = asyncHandler(async (req, res) => {
     );
   }
 
+  const classInfo = await query(
+    `SELECT c.name AS class_name, s.starts_at
+     FROM schedules s
+     JOIN classes c ON c.id = s.class_id
+     WHERE s.id = $1`,
+    [req.params.id]
+  );
+
+  await notifyAdmins({
+    title: 'Class booked (PWA)',
+    body: `${member.first_name} ${member.last_name} booked ${
+      classInfo.rows[0]?.class_name || 'a class'
+    }.`,
+    type: 'booking',
+    meta: {
+      bookingId: result.rows[0].id,
+      scheduleId: req.params.id,
+      memberId: member.id,
+      source: 'pwa',
+    },
+  });
+
   res.status(201).json({ success: true, data: result.rows[0] });
 });
 
@@ -289,6 +417,13 @@ const checkIn = asyncHandler(async (req, res) => {
     [member.id, req.body.notes || null]
   );
 
+  await notifyAdmins({
+    title: 'Member checked in (PWA)',
+    body: `${member.first_name} ${member.last_name} (${member.member_code}) checked in.`,
+    type: 'attendance',
+    meta: { attendanceId: result.rows[0].id, memberId: member.id, source: 'pwa' },
+  });
+
   res.status(201).json({ success: true, data: result.rows[0] });
 });
 
@@ -304,6 +439,14 @@ const checkOut = asyncHandler(async (req, res) => {
   if (!result.rows[0]) {
     throw new ApiError(404, 'No open check-in found');
   }
+
+  await notifyAdmins({
+    title: 'Member checked out (PWA)',
+    body: `${member.first_name} ${member.last_name} (${member.member_code}) checked out.`,
+    type: 'attendance',
+    meta: { attendanceId: result.rows[0].id, memberId: member.id, source: 'pwa' },
+  });
+
   res.json({ success: true, data: result.rows[0] });
 });
 
@@ -315,6 +458,16 @@ const listAnnouncements = asyncHandler(async (req, res) => {
        AND (ends_at IS NULL OR ends_at >= CURRENT_TIMESTAMP)
      ORDER BY is_pinned DESC, starts_at DESC
      LIMIT 50`
+  );
+  res.json({ success: true, data: result.rows });
+});
+
+const listTrainers = asyncHandler(async (req, res) => {
+  const result = await query(
+    `SELECT id, first_name, last_name, specialties, bio, photo_url
+     FROM trainers
+     WHERE status = 'active'
+     ORDER BY first_name ASC, last_name ASC`
   );
   res.json({ success: true, data: result.rows });
 });
@@ -345,6 +498,8 @@ const getContent = asyncHandler(async (req, res) => {
 
 module.exports = {
   me,
+  updateMe,
+  updateProfileValidators,
   overview,
   listPlans,
   listSchedules,
@@ -354,6 +509,7 @@ module.exports = {
   checkIn,
   checkOut,
   listAnnouncements,
+  listTrainers,
   listContent,
   getContent,
 };
