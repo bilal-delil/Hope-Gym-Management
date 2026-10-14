@@ -18,6 +18,25 @@ const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000')
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+// In development, also allow any localhost / LAN origin (phones on Wi‑Fi).
+function isDevFriendlyOrigin(origin) {
+  if (!origin) return false;
+  try {
+    const url = new URL(origin);
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+      return true;
+    }
+    return (
+      /^192\.168\.\d+\.\d+$/.test(url.hostname) ||
+      /^10\.\d+\.\d+\.\d+$/.test(url.hostname) ||
+      /^172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+$/.test(url.hostname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+
 const googleClientIds = process.env.GOOGLE_CLIENT_IDS.split(',')
   .map((id) => id.trim())
   .filter(Boolean);
@@ -55,6 +74,7 @@ module.exports = {
   jwtSecret: process.env.JWT_SECRET,
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   corsOrigins,
+  isDevFriendlyOrigin,
   googleClientIds,
   adminEmails,
   seed: {
@@ -62,3 +82,4 @@ module.exports = {
     adminName: process.env.SEED_ADMIN_NAME || 'Hope Admin',
   },
 };
+

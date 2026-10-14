@@ -5,6 +5,7 @@ const { query, getClient } = require('../db/pool');
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { getPagination, paginatedResponse } = require('../utils/pagination');
+const { notifyAdmins, notifyUser } = require('../utils/notifyAdmins');
 
 const createValidators = [
   body('memberId').isUUID(),
@@ -43,22 +44,16 @@ function cleanupUploadedFile(file) {
 }
 
 function buildProofUrls(req, filename) {
+  // Files live on disk at nodejs-server/uploads/payments/<filename>
+  // and are served by Express static at /uploads/payments/<filename>.
   const relativePath = path.posix.join('uploads', 'payments', filename);
-  const proofImageUrl = `${req.protocol}://${req.get('host')}/${relativePath}`;
+  const host = req.get('x-forwarded-host') || req.get('host');
+  const proto = req.get('x-forwarded-proto') || req.protocol;
+  const proofImageUrl = `${proto}://${host}/${relativePath}`;
   return {
     proofImagePath: relativePath,
     proofImageUrl,
   };
-}
-
-async function notifyAdmins({ title, body, meta }) {
-  await query(
-    `INSERT INTO notifications (user_id, title, body, type, meta)
-     SELECT id, $1, $2, 'payment', $3::jsonb
-     FROM users
-     WHERE is_active = true AND role IN ('admin', 'staff')`,
-    [title, body, JSON.stringify(meta || {})]
-  );
 }
 
 const list = asyncHandler(async (req, res) => {
@@ -196,6 +191,7 @@ const create = asyncHandler(async (req, res) => {
     await notifyAdmins({
       title: 'New payment proof submitted',
       body: `${memberName} (${member.rows[0].member_code}) submitted a payment of ${payment.amount} ${payment.currency} for review.`,
+      type: 'payment',
       meta: { paymentId: payment.id, memberId },
     });
 
@@ -254,6 +250,17 @@ const approve = asyncHandler(async (req, res) => {
 
     await client.query('COMMIT');
 
+    const memberUser = await query(
+      'SELECT user_id FROM members WHERE id = $1',
+      [payment.member_id]
+    );
+    await notifyUser(memberUser.rows[0]?.user_id, {
+      title: 'Payment approved',
+      body: `Your payment of ${updated.rows[0].amount} ${updated.rows[0].currency} was approved.`,
+      type: 'payment',
+      meta: { paymentId: updated.rows[0].id },
+    });
+
     const detailed = await query(`${paymentSelect()} WHERE p.id = $1`, [
       updated.rows[0].id,
     ]);
@@ -297,6 +304,19 @@ const decline = asyncHandler(async (req, res) => {
      RETURNING *`,
     [rejectionReason, req.user.id, req.params.id]
   );
+
+  const memberUser = await query(
+    'SELECT user_id FROM members WHERE id = $1',
+    [payment.member_id]
+  );
+  await notifyUser(memberUser.rows[0]?.user_id, {
+    title: 'Payment declined',
+    body:
+      rejectionReason ||
+      `Your payment of ${updated.rows[0].amount} ${updated.rows[0].currency} was declined.`,
+    type: 'payment',
+    meta: { paymentId: updated.rows[0].id },
+  });
 
   const detailed = await query(`${paymentSelect()} WHERE p.id = $1`, [
     updated.rows[0].id,

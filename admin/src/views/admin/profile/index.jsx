@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  Avatar,
   Button,
   FormControl,
   FormLabel,
@@ -18,16 +19,27 @@ export default function ProfilePage() {
   const { user, refreshMe, logout } = useAuth();
   const toast = useToast();
   const textColor = useColorModeValue('navy.700', 'white');
+  const muted = useColorModeValue('gray.500', 'gray.400');
   const [form, setForm] = useState({
-    fullName: user?.fullName || '',
-    phone: user?.phone || '',
+    fullName: '',
+    phone: '',
   });
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setForm({
+      fullName: user?.fullName || '',
+      phone: user?.phone || '',
+    });
+  }, [user]);
 
   const save = async () => {
     setSaving(true);
     try {
-      await api.put('/profile', form);
+      await api.put('/profile', {
+        fullName: form.fullName,
+        phone: form.phone || null,
+      });
       await refreshMe();
       toast({ title: 'Profile updated', status: 'success', duration: 2000 });
     } catch (err) {
@@ -38,16 +50,27 @@ export default function ProfilePage() {
   };
 
   return (
-    <PageShell title='Profile' subtitle='Your admin account details'>
+    <PageShell title='Profile' subtitle='Signed-in admin account (Google auth)'>
       <SimpleGrid columns={{ base: 1, md: 2 }} gap='20px'>
         <Card p='24px'>
+          <Avatar
+            name={user?.fullName || user?.email || 'Admin'}
+            src={user?.avatarUrl || undefined}
+            size='xl'
+            mb='16px'
+            bg='#11047A'
+            color='white'
+          />
           <Text color={textColor} fontWeight='700' mb='16px'>
             Account
           </Text>
-          <Text mb='8px'>Email: {user?.email}</Text>
-          <Text mb='8px'>Role: {user?.role}</Text>
-          <Text mb='20px'>
+          <Text mb='8px'>Email: {user?.email || '—'}</Text>
+          <Text mb='8px'>Role: {user?.role || '—'}</Text>
+          <Text mb='8px'>
             Google linked: {user?.googleLinked ? 'Yes' : 'No'}
+          </Text>
+          <Text mb='20px' color={muted} fontSize='sm'>
+            User ID: {user?.id || '—'}
           </Text>
           <FormControl mb='12px'>
             <FormLabel>Full name</FormLabel>
@@ -75,8 +98,9 @@ export default function ProfilePage() {
           <Text color={textColor} fontWeight='700' mb='16px'>
             Session
           </Text>
-          <Text mb='20px' fontSize='sm'>
-            Authentication is Google-only. Sign out to switch accounts.
+          <Text mb='20px' fontSize='sm' color={muted}>
+            Authentication is Google-only against the allowlisted admin emails
+            on the API. Sign out to switch accounts.
           </Text>
           <Button colorScheme='red' variant='outline' onClick={logout}>
             Sign out

@@ -223,6 +223,19 @@ const googleMember = asyncHandler(async (req, res) => {
 
     await client.query('COMMIT');
 
+    await query(
+      `INSERT INTO notifications (user_id, title, body, type)
+       SELECT $1,
+              'Welcome to Hope Fitness',
+              'Book classes, check in, and manage payments from the member app.',
+              'welcome'
+       WHERE NOT EXISTS (
+         SELECT 1 FROM notifications
+         WHERE user_id = $1 AND title = 'Welcome to Hope Fitness'
+       )`,
+      [user.id]
+    );
+
     res.json({
       success: true,
       data: {

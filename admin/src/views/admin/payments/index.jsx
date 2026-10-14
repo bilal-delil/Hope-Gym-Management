@@ -19,15 +19,21 @@ import {
 } from '@chakra-ui/react';
 import PageShell from 'components/admin/PageShell';
 import DataTableCard, { StatusBadge } from 'components/admin/DataTableCard';
+import ConfirmDeleteDialog from 'components/admin/ConfirmDeleteDialog';
+import RecordViewModal from 'components/admin/RecordViewModal';
 import useApiList from 'hooks/useApiList';
+import useConfirmDelete from 'hooks/useConfirmDelete';
 import api from 'lib/api';
+import { resolveUploadUrl } from 'lib/uploads';
 
 export default function PaymentsPage() {
   const { rows, loading, error, reload } = useApiList('/payments?limit=100');
   const members = useApiList('/members?limit=100');
   const createModal = useDisclosure();
   const reviewModal = useDisclosure();
+  const viewModal = useDisclosure();
   const [selected, setSelected] = useState(null);
+  const [viewing, setViewing] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -38,6 +44,16 @@ export default function PaymentsPage() {
     proofImage: null,
   });
   const toast = useToast();
+
+  const deleteCtrl = useConfirmDelete({
+    title: 'Delete payment',
+    getMessage: (row) =>
+      `Delete payment of ${row.amount} from ${row.first_name} ${row.last_name}? The proof image file will also be removed.`,
+    onDelete: async (row) => {
+      await api.delete(`/payments/${row.id}`);
+      reload();
+    },
+  });
 
   const submitPayment = async () => {
     if (!form.proofImage) {
@@ -79,6 +95,11 @@ export default function PaymentsPage() {
     reviewModal.onOpen();
   };
 
+  const openView = (row) => {
+    setViewing(row);
+    viewModal.onOpen();
+  };
+
   const decline = async () => {
     setSaving(true);
     try {
@@ -93,16 +114,22 @@ export default function PaymentsPage() {
     }
   };
 
+  const proofUrl = resolveUploadUrl(
+    viewing?.proof_image_url || viewing?.proof_image_path
+  );
+
   return (
     <PageShell
       title='Payments'
-      subtitle='Review payment screenshots — approve or decline'
+      subtitle='Proof images are stored on the API server under uploads/payments and served at /uploads/payments/…'
       actionLabel='Submit payment'
       onAction={createModal.onOpen}
       loading={loading}
       error={error}>
       <DataTableCard
         rows={rows}
+        onView={openView}
+        onDelete={deleteCtrl.requestDelete}
         columns={[
           {
             key: 'member',
@@ -119,19 +146,23 @@ export default function PaymentsPage() {
           {
             key: 'proof',
             label: 'Proof',
-            render: (row) =>
-              row.proof_image_url ? (
+            render: (row) => {
+              const url = resolveUploadUrl(
+                row.proof_image_url || row.proof_image_path
+              );
+              return url ? (
                 <Image
-                  src={row.proof_image_url}
+                  src={url}
                   alt='proof'
                   maxH='48px'
                   borderRadius='8px'
                   cursor='pointer'
-                  onClick={() => window.open(row.proof_image_url, '_blank')}
+                  onClick={() => openView(row)}
                 />
               ) : (
                 '—'
-              ),
+              );
+            },
           },
           {
             key: 'created_at',
@@ -145,12 +176,91 @@ export default function PaymentsPage() {
               <Button size='sm' colorScheme='green' onClick={() => approve(row)}>
                 Approve
               </Button>
-              <Button size='sm' colorScheme='red' variant='outline' onClick={() => openDecline(row)}>
+              <Button
+                size='sm'
+                colorScheme='red'
+                variant='outline'
+                onClick={() => openDecline(row)}>
                 Decline
               </Button>
             </>
           ) : null
         }
+      />
+
+      <RecordViewModal
+        isOpen={viewModal.isOpen}
+        onClose={viewModal.onClose}
+        title='Payment details'
+        imageUrl={proofUrl}
+        imageLabel='Payment proof'
+        fields={
+          viewing
+            ? [
+                {
+                  label: 'Member',
+                  value: `${viewing.first_name} ${viewing.last_name}`,
+                },
+                { label: 'Member code', value: viewing.member_code },
+                { label: 'Amount', value: `${viewing.amount} ${viewing.currency || ''}` },
+                { label: 'Method', value: viewing.method },
+                { label: 'Status', value: viewing.status, type: 'status' },
+                { label: 'Reference', value: viewing.reference },
+                {
+                  label: 'Description',
+                  value: viewing.description,
+                  fullWidth: true,
+                },
+                {
+                  label: 'Submitted',
+                  value: viewing.created_at,
+                  type: 'datetime',
+                },
+                {
+                  label: 'Reviewed',
+                  value: viewing.reviewed_at,
+                  type: 'datetime',
+                },
+                {
+                  label: 'Rejection reason',
+                  value: viewing.rejection_reason,
+                  fullWidth: true,
+                },
+                {
+                  label: 'Stored path',
+                  value: viewing.proof_image_path,
+                  fullWidth: true,
+                },
+              ]
+            : []
+        }
+        footer={
+          viewing?.status === 'pending' ? (
+            <>
+              <Button colorScheme='green' onClick={() => approve(viewing)}>
+                Approve
+              </Button>
+              <Button
+                colorScheme='red'
+                variant='outline'
+                onClick={() => {
+                  viewModal.onClose();
+                  openDecline(viewing);
+                }}>
+                Decline
+              </Button>
+            </>
+          ) : null
+        }
+      />
+
+      <ConfirmDeleteDialog
+        isOpen={deleteCtrl.isOpen}
+        onClose={deleteCtrl.onClose}
+        onConfirm={deleteCtrl.confirmDelete}
+        title={deleteCtrl.title}
+        message={deleteCtrl.message}
+        isLoading={deleteCtrl.loading}
       />
 
       <Modal isOpen={createModal.isOpen} onClose={createModal.onClose}>

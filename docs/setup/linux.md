@@ -210,15 +210,19 @@ Use a Gmail listed in `ADMIN_GOOGLE_EMAILS`.
 
 ---
 
-## 6. Optional: PWA
+## 6. Member PWA
 
 ```bash
 cd ~/Projects/Hope-Gym-Management/pwa
+cp .env.example .env
+# Set VITE_API_URL and VITE_GOOGLE_CLIENT_ID (same Google client as the API)
 npm install
 npm run dev
 ```
 
 Usually http://localhost:5173
+
+Add `http://localhost:5173` to Google OAuth **Authorized JavaScript origins**. Member Google sign-in is open to any account (`POST /api/auth/google/member`).
 
 ---
 

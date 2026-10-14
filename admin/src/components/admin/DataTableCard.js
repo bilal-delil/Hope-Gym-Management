@@ -19,12 +19,14 @@ export default function DataTableCard({
   columns,
   rows,
   emptyText = 'No records found',
+  onView,
   onEdit,
   onDelete,
   extraActions,
 }) {
   const textColor = useColorModeValue('secondaryGray.900', 'white');
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.100');
+  const showActions = Boolean(onView || onEdit || onDelete || extraActions);
 
   return (
     <Card flexDirection='column' w='100%' px='0px' overflowX={{ sm: 'scroll', lg: 'hidden' }}>
@@ -40,11 +42,11 @@ export default function DataTableCard({
                     {column.label}
                   </Th>
                 ))}
-                {(onEdit || onDelete || extraActions) && (
+                {showActions ? (
                   <Th borderColor={borderColor} color='gray.400'>
                     Actions
                   </Th>
-                )}
+                ) : null}
               </Tr>
             </Thead>
             <Tbody>
@@ -57,9 +59,14 @@ export default function DataTableCard({
                         : row[column.key] ?? '—'}
                     </Td>
                   ))}
-                  {(onEdit || onDelete || extraActions) && (
+                  {showActions ? (
                     <Td borderColor={borderColor}>
                       <Flex gap='8px' wrap='wrap'>
+                        {onView ? (
+                          <Button size='sm' variant='ghost' onClick={() => onView(row)}>
+                            View
+                          </Button>
+                        ) : null}
                         {extraActions ? extraActions(row) : null}
                         {onEdit ? (
                           <Button size='sm' variant='outline' onClick={() => onEdit(row)}>
@@ -77,7 +84,7 @@ export default function DataTableCard({
                         ) : null}
                       </Flex>
                     </Td>
-                  )}
+                  ) : null}
                 </Tr>
               ))}
             </Tbody>
@@ -90,11 +97,20 @@ export default function DataTableCard({
 
 export function StatusBadge({ value }) {
   const scheme =
-    value === 'active' || value === 'completed' || value === 'published'
+    value === 'active' ||
+    value === 'completed' ||
+    value === 'published' ||
+    value === 'approved' ||
+    value === 'attended' ||
+    value === 'paid'
       ? 'green'
-      : value === 'pending' || value === 'scheduled'
+      : value === 'pending' || value === 'scheduled' || value === 'booked'
         ? 'orange'
-        : value === 'declined' || value === 'expired' || value === 'cancelled'
+        : value === 'declined' ||
+            value === 'expired' ||
+            value === 'cancelled' ||
+            value === 'no_show' ||
+            value === 'suspended'
           ? 'red'
           : 'gray';
 
