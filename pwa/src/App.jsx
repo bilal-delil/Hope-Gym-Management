@@ -5,6 +5,7 @@ import CheckIn from './pages/CheckIn';
 import Classes from './pages/Classes';
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Notifications from './pages/Notifications';
 import Payments from './pages/Payments';
 import Profile from './pages/Profile';
 
@@ -23,6 +24,7 @@ export default function App() {
         <Route path="/classes" element={<Classes />} />
         <Route path="/check-in" element={<CheckIn />} />
         <Route path="/payments" element={<Payments />} />
+        <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile" element={<Profile />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

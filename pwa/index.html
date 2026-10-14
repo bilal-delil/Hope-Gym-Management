@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#0B0E1B" />
+    <meta name="theme-color" content="#F5F4FB" />
     <meta name="description" content="Hope Fitness Center member app" />
     <link rel="icon" type="image/png" href="/hope.png" />
     <link rel="apple-touch-icon" href="/hope.png" />
@@ -17,6 +17,19 @@
       rel="stylesheet"
     />
     <title>Hope Gym</title>
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem('hope_member_theme');
+          if (t !== 'dark' && t !== 'light') t = 'light';
+          document.documentElement.setAttribute('data-theme', t);
+          var meta = document.querySelector('meta[name="theme-color"]');
+          if (meta) meta.setAttribute('content', t === 'dark' ? '#0B0E1B' : '#F5F4FB');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'light');
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

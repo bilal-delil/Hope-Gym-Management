@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
+import ThemeToggle from '../components/ThemeToggle';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function Login() {
   const { loginWithGoogle, isAuthenticated, loading } = useAuth();
+  const { isDark } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [busy, setBusy] = useState(false);
@@ -35,6 +38,9 @@ export default function Login() {
 
   return (
     <div className="login-screen">
+      <div className="login-theme">
+        <ThemeToggle />
+      </div>
       <div className="login-card">
         <img src="/logo.png" alt="Hope Fitness Center" className="login-logo" />
         <h1>Hope Gym</h1>
@@ -47,7 +53,7 @@ export default function Login() {
             onSuccess={handleSuccess}
             onError={() => setError('Google sign-in was cancelled')}
             useOneTap={false}
-            theme="filled_black"
+            theme={isDark ? 'filled_black' : 'outline'}
             size="large"
             shape="pill"
             text="continue_with"

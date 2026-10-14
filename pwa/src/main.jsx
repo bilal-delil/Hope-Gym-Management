@@ -5,6 +5,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { registerSW } from 'virtual:pwa-register';
 import App from './App';
 import { AuthProvider } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import './index.css';
 
 const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -19,9 +20,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId={clientId || ''}>
       <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <App />
+          </AuthProvider>
+        </ThemeProvider>
       </BrowserRouter>
     </GoogleOAuthProvider>
   </React.StrictMode>
