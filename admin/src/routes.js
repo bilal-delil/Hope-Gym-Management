@@ -13,6 +13,7 @@ import {
   MdBarChart,
   MdSettings,
   MdSportsGymnastics,
+  MdEventAvailable,
 } from 'react-icons/md';
 
 import MainDashboard from 'views/admin/default';
@@ -25,6 +26,7 @@ import AnnouncementsPage from 'views/admin/announcements';
 import ClassesPage from 'views/admin/classes';
 import TrainersPage from 'views/admin/trainers';
 import SchedulePage from 'views/admin/schedule';
+import BookingsPage from 'views/admin/bookings';
 import ReportsPage from 'views/admin/reports';
 import Profile from 'views/admin/profile';
 import SettingsPage from 'views/admin/settings';
@@ -115,6 +117,15 @@ const routes = [
       <Icon as={MdCalendarMonth} width='20px' height='20px' color='inherit' />
     ),
     component: <SchedulePage />,
+  },
+  {
+    name: 'Bookings',
+    layout: '/admin',
+    path: '/bookings',
+    icon: (
+      <Icon as={MdEventAvailable} width='20px' height='20px' color='inherit' />
+    ),
+    component: <BookingsPage />,
   },
   {
     name: 'Reports',
